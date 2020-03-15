@@ -13,6 +13,7 @@ servers:
   - url: 'http://csse-s365.canterbury.ac.nz:4001/api/v1'
     description: reference server
 tags:
+  # TODO Does this mean we have a route, model and controller file for each of the names below?
   - name: Backdoor
     description: Development-only endpoints for resetting and resampling the database.
   - name: petitions
@@ -41,6 +42,7 @@ paths:
         The list should be filtered, then sorted, then paginated using
         `startIndex` and `count`.
       parameters:
+        # TODO What is the $ref referring to?
         - in: query
           name: startIndex
           description: Number of items to skip before returning results.
@@ -89,6 +91,7 @@ paths:
           schema:
             $ref: '#/components/schemas/PetitionSearchRequest/properties/sortBy'
       responses:
+      # TODO How to know when it should be 400 or 500? 
         '200':
           description: OK
           content:
