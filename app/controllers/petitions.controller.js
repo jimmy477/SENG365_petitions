@@ -1,11 +1,11 @@
 const petition = require('../models/petitions.model');
 
-exports.list = async function (req, res) {
+exports.list_petitions = async function (req, res) {
 
     console.log('\nRequest to list all petitions');
 
     try {
-        const result = petition.getAll();
+        const result = await petition.getAll();
         res.status(200)
             .send(result);
     } catch (err) {
