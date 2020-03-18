@@ -6,7 +6,7 @@ exports.register = async function (req, res) {
 
     // If the email does not contain '@' return status 400
     try {
-        if (req.body.email.includes('@')) throw "ERROR email invalid";
+        if (!req.body.email.includes('@')) throw "ERROR email invalid";
         const userId = await users.registerUser(req.body);
         res.status(201)
             .send({"userId": userId})
