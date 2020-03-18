@@ -38,7 +38,8 @@ exports.getAll = async function (parameters) {
         param_array.push(parseInt(parameters.count));
     }
 
-    const query = 'SELECT * FROM Petition' + extra_query;
+    // TODO join the tables in order to get all the correct info
+    const query = 'SELECT petition_id, title  FROM Petition' + extra_query;
 
     // console.log(query);
 
