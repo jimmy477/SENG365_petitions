@@ -27,7 +27,7 @@ exports.list_petitions = async function (req, res) {
             .send(result);
     } catch (err) {
         // TODO check which error code to send and how to choose the correct one
-        res.status(400)
+        res.status(500)
             .send(`ERROR getting petitions ${err}`)
     }
 };
