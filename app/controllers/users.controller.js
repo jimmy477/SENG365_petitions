@@ -37,8 +37,9 @@ exports.login = async function (req, res) {
     try {
         const result = await users.login(req.body);
         if (result === null) {
+            res.statusMessage = "Incorrect credentials";
             res.status(400)
-                .send("ERROR wrong credentials");
+                .send();
         } else {
             console.log("Login successfull");
             res.status(200)
@@ -58,6 +59,26 @@ exports.logout = async function (req, res) {
         users.logout(req.authenticatedUserId);
         res.status(200)
             .send();
+    } catch (err) {
+        res.status(500)
+            .send(err);
+    }
+};
+
+exports.getInfo = async function (req, res) {
+
+    console.log('\nRetrieving user info');
+
+    try {
+        const user_info = await users.getUserInfo(req.params.id, req.header('X-Authorization'));
+        if (user_info === null) {
+            res.statusMessage = 'Could not find user by given user_id';
+            res.status(404)
+                .send();
+        } else {
+            res.status(200)
+                .send(user_info);
+        }
     } catch (err) {
         res.status(500)
             .send(err);

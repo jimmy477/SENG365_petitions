@@ -1,5 +1,6 @@
 const db = require('../../config/db');
 const passwords = require('bcrypt');
+const authentication = require('../middleware/authenticate.middleware');
 
 
 exports.registerUser = async function (user_data) {
@@ -37,11 +38,25 @@ exports.login = async function (user_data) {
 
 exports.logout = async function (user_id) {
     // Removes the auth_token from the users database row
-    console.log('made it');
     const conn = await db.getPool().getConnection();
     const query = 'UPDATE User SET auth_token = NULL WHERE user_id = ?';
     const [result] = await conn.query(query, [user_id]);
     conn.release();
+};
+
+exports.getUserInfo = async function (user_id, token) {
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT name, city, country, email FROM User WHERE user_id = ?';
+    const [user_info] = await conn.query(query, [user_id]);
+    conn.release();
+    if (user_info[0] === undefined) {
+        return null;
+    }
+    const token_id = await authentication.findUserIdByToken(token);
+    if (token_id[0].user_id != user_id) {
+        delete user_info[0].email;
+    }
+    return user_info[0];
 };
 
 function randomNum() {

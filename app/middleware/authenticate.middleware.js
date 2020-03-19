@@ -19,10 +19,10 @@ exports.checkToken = async function (req, res, next) {
     }
 };
 
-async function findUserIdByToken(token) {
+exports.findUserIdByToken = async function (token) {
     const conn = await db.getPool().getConnection();
     const query = 'SELECT user_id FROM User WHERE auth_token = ?';
     const [result] = await conn.query(query, [token]);
     conn.release();
     return result;
-}
+};

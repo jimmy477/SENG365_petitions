@@ -10,4 +10,7 @@ module.exports = function (app) {
 
     app.route(app.rootUrl + '/users/logout')
         .post(authenticate.checkToken, users.logout);
+
+    app.route(app.rootUrl + '/users/:id')
+        .get(users.getInfo)
 };
