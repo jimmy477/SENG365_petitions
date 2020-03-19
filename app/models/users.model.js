@@ -13,6 +13,7 @@ exports.registerUser = async function (user_data) {
 };
 
 exports.login = async function (user_data) {
+    // Checks user has given correct credentials then assigns a random auth_token and puts this in the database
     const conn = await db.getPool().getConnection();
     const query = 'SELECT user_id, password FROM User WHERE email = ?';
     const [result] = await conn.query(query, [user_data.email]);
@@ -32,6 +33,15 @@ exports.login = async function (user_data) {
             return {"userId": result[0].user_id, "token": token};
         }
     }
+};
+
+exports.logout = async function (user_id) {
+    // Removes the auth_token from the users database row
+    console.log('made it');
+    const conn = await db.getPool().getConnection();
+    const query = 'UPDATE User SET auth_token = NULL WHERE user_id = ?';
+    const [result] = await conn.query(query, [user_id]);
+    conn.release();
 };
 
 function randomNum() {

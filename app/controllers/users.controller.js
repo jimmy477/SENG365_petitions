@@ -55,9 +55,9 @@ exports.logout = async function (req, res) {
     console.log('\nTrying to logout');
 
     try {
-        // const result =
-
-
+        users.logout(req.authenticatedUserId);
+        res.status(200)
+            .send();
     } catch (err) {
         res.status(500)
             .send(err);
