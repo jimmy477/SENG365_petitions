@@ -6,8 +6,7 @@ exports.register = async function (req, res) {
     console.log('\nRequest to register a new user');
 
     try {
-        const userId = await users.registerUser(req.body);
-
+        console.log(req.body.name === undefined);
         if (req.body.name === undefined) {
             res.status(400)
                 .send("ERROR no name given" );
@@ -15,6 +14,7 @@ exports.register = async function (req, res) {
             res.status(400)
                 .send("ERROR email invalid")
         } else {
+            const userId = await users.registerUser(req.body);
             console.log("User registered successfully");
             res.status(201)
                 .send({"userId": userId})
