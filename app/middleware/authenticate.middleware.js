@@ -4,6 +4,7 @@ exports.checkToken = async function (req, res, next) {
     const token = req.header('X-Authorization');
     try {
         const result = await findUserIdByToken(token);
+
         if (result[0] === undefined) {
             res.statusMessage = 'Unauthorized';
             res.status(401)
@@ -19,10 +20,12 @@ exports.checkToken = async function (req, res, next) {
     }
 };
 
-exports.findUserIdByToken = async function (token) {
+async function findUserIdByToken(token) {
     const conn = await db.getPool().getConnection();
     const query = 'SELECT user_id FROM User WHERE auth_token = ?';
     const [result] = await conn.query(query, [token]);
     conn.release();
     return result;
 };
+
+exports.findUserIdByToken = findUserIdByToken;

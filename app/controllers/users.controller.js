@@ -84,3 +84,17 @@ exports.getInfo = async function (req, res) {
             .send(err);
     }
 };
+
+exports.updateInfo = async function (req, res) {
+
+    console.log('\nAttempting to update user info');
+
+    try {
+        const result = await users.updateUserInfo(req.params.id, req.body);
+        res.status(200)
+            .send(result);
+    } catch (err) {
+        res.status(500)
+            .send(err);
+    }
+};

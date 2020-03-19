@@ -59,6 +59,45 @@ exports.getUserInfo = async function (user_id, token) {
     return user_info[0];
 };
 
+exports.updateUserInfo = async function (user_id, update_info) {
+    const conn = await db.getPool().getConnection();
+    let set_query = 'SET';
+    let set_params = [];
+    if (update_info.name !== undefined) {
+        set_params.push(update_info.name);
+        set_query += ' name = ?';
+    }
+    if (update_info.email !== undefined) {
+        if (set_params.length < 1) {
+            set_query += ' email = ?';
+        } else {
+            set_query += ', email = ?'
+        }
+        set_params.push(update_info.email);
+    }
+    if (update_info.city !== undefined) {
+        if (set_params.length < 1) {
+            set_query += ' city = ?';
+        } else {
+            set_query += ', city = ?';
+        }
+        set_params.push(update_info.city);
+    }
+    if (update_info.country !== undefined) {
+        if (set_params.length < 1) {
+            set_query += ' country = ?';
+        } else {
+            set_query += ', country = ?';
+        }
+        set_params.push(update_info.country);
+    }
+    const query = 'UPDATE User ' + set_query + ' WHERE user_id = ?';
+    set_params.push(user_id);
+    const [result] = await conn.query(query, set_params);
+    conn.release();
+    return result;
+};
+
 function randomNum() {
     return Math.random().toString(36).substr(2);
 }
