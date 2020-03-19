@@ -15,8 +15,9 @@ exports.register = async function (req, res) {
             res.status(400)
                 .send("ERROR email invalid")
         } else {
-                res.status(201)
-                    .send({"userId": userId})
+            console.log("User registered successfully");
+            res.status(201)
+                .send({"userId": userId})
         }
     } catch (err) {
         if (err.code === 'ER_DUP_ENTRY') {
@@ -39,11 +40,25 @@ exports.login = async function (req, res) {
             res.status(400)
                 .send("ERROR wrong credentials");
         } else {
+            console.log("Login successfull");
             res.status(200)
                 .send(result);
         }
     } catch (err) {
-        console.log(err);
+        res.status(500)
+            .send(err);
+    }
+};
+
+exports.logout = async function (req, res) {
+
+    console.log('\nTrying to logout');
+
+    try {
+        // const result =
+
+
+    } catch (err) {
         res.status(500)
             .send(err);
     }
