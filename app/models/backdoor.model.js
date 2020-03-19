@@ -1,5 +1,6 @@
 const db = require('../../config/db');
 const fs = require('mz/fs');
+const bc = require('bcrypt');
 
 const photoDirectory = './storage/photos/';
 const defaultPhotoDirectory = './storage/default/';
