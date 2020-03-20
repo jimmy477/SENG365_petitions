@@ -93,6 +93,27 @@ exports.updateUserInfo = async function (user_id, update_info) {
         }
         set_params.push(update_info.country);
     }
+    if (update_info.password !== undefined && update_info.currentPassword === undefined) {
+        return 'no current password given'
+    }
+    if (update_info.password !== undefined && update_info.currentPassword !== undefined) {
+        const check_password_query = 'SELECT password FROM User WHERE user_id = ?';
+        const [hashed_password] = await conn.query(check_password_query, [user_id]);
+        const given_hashed_password = await passwords.hash(update_info.password, 10);
+        const password_correct = await passwords.compare(ugiven_hashed_password, hashed_password[0].password);
+        if (password_correct) {
+            if (set_params.length < 1) {
+                set_query += ' password = ?';
+            } else {
+                set_query += ', password = ?';
+            }
+            set_params.push(update_info.password);
+        } else {
+            return 'incorrect password'
+        }
+
+    }
+
     const query = 'UPDATE User ' + set_query + ' WHERE user_id = ?';
     set_params.push(user_id);
     const [result] = await conn.query(query, set_params);

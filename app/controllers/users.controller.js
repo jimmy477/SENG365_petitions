@@ -6,7 +6,6 @@ exports.register = async function (req, res) {
     console.log('\nRequest to register a new user');
 
     try {
-        console.log(req.body.name === undefined);
         if (req.body.name === undefined) {
             res.status(400)
                 .send("ERROR no name given" );
@@ -91,8 +90,18 @@ exports.updateInfo = async function (req, res) {
 
     try {
         const result = await users.updateUserInfo(req.params.id, req.body);
-        res.status(200)
-            .send(result);
+        if (result === 'no current password given') {
+            res.statusMessage = user_info;
+            res.status(400)
+                .send();
+        } else if (result === 'incorrect password') {
+            res.statusMessage = user_info;
+            res.status(400)
+                .send();
+        } else {
+            res.status(200)
+                .send();
+        }
     } catch (err) {
         res.status(500)
             .send(err);
