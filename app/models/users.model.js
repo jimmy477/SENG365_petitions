@@ -51,11 +51,11 @@ exports.getUserInfo = async function (user_id, token) {
     const query_token = 'SELECT user_id FROM User WHERE auth_token = ?';
     const [result_id] = await conn.query(query_token, [token]);
     conn.release();
-    console.log('l', result_id[0].user_id != user_id);
     if (user_info[0] === undefined) {
         return null;
     }
-    if (result_id[0].user_id != user_id) {
+    console.log(' a', result_id);
+    if (result_id[0] === undefined || result_id[0].user_id != user_id) {
         delete user_info[0].email;
     }
     return user_info[0];
