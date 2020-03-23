@@ -90,12 +90,12 @@ exports.updateInfo = async function (req, res) {
 
     try {
         const result = await users.updateUserInfo(req.params.id, req.body);
-        if (result === 'no current password given') {
-            res.statusMessage = user_info;
+        if (result == 'no current password given') {
+            res.statusMessage = result;
             res.status(400)
                 .send();
-        } else if (result === 'incorrect password') {
-            res.statusMessage = user_info;
+        } else if (result == 'incorrect password') {
+            res.statusMessage = result;
             res.status(400)
                 .send();
         } else {
