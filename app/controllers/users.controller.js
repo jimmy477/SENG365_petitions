@@ -89,18 +89,24 @@ exports.updateInfo = async function (req, res) {
     console.log('\nAttempting to update user info');
 
     try {
-        const result = await users.updateUserInfo(req.params.id, req.body);
-        if (result == 'no current password given') {
-            res.statusMessage = result;
-            res.status(400)
-                .send();
-        } else if (result == 'incorrect password') {
-            res.statusMessage = result;
+        if (Object.keys(req.body).length === 0) {
+            res.statusMessage = 'no changes provided';
             res.status(400)
                 .send();
         } else {
-            res.status(200)
-                .send();
+            const result = await users.updateUserInfo(req.params.id, req.body);
+            if (result == 'no current password given') {
+                res.statusMessage = result;
+                res.status(400)
+                    .send();
+            } else if (result == 'incorrect password') {
+                res.statusMessage = result;
+                res.status(400)
+                    .send();
+            } else {
+                res.status(200)
+                    .send();
+            }
         }
     } catch (err) {
         res.status(500)
