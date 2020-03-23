@@ -97,9 +97,7 @@ exports.updateUserInfo = async function (user_id, update_info) {
         return 'no current password given'
     }
     if (update_info.password !== undefined && update_info.currentPassword !== undefined) {
-        const check_password_query = 'SELECT password FROM User WHERE user_id = ?';
-        const [hashed_password] = await conn.query(check_password_query, [user_id]);
-        const password_correct = await passwords.compare(update_info.currentPassword, hashed_password[0].password);
+        const password_correct = comparePasswords(update_info.user_id, update_info.currentPassword);
         if (password_correct) {
             if (set_params.length < 1) {
                 set_query += ' password = ?';
@@ -112,13 +110,20 @@ exports.updateUserInfo = async function (user_id, update_info) {
         }
 
     }
-
     const query = 'UPDATE User ' + set_query + ' WHERE user_id = ?';
     set_params.push(user_id);
     const [result] = await conn.query(query, set_params);
     conn.release();
     return result;
 };
+
+async function comparePasswords(user_id, plain_text) {
+    /**Compares a plainText password with the hashed password in the database and returns true if the same*/
+    const conn = await db.getPool().getConnection();
+    const check_password_query = 'SELECT password FROM User WHERE user_id = ?';
+    const [hashed_password] = await conn.query(check_password_query, [user_id]);
+    return await passwords.compare(plain_text, hashed_password[0].password);
+}
 
 function randomNum() {
     return Math.random().toString(36).substr(2);
