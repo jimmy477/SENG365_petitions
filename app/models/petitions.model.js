@@ -57,7 +57,8 @@ exports.getAll = async function (parameters) {
     conn.release();
     if (parameters.q !== undefined) {
         for (let i = 0; i < rows.length; i++) {
-            if (!rows[i].title.includes(parameters.q)) {
+            let title = rows[i].title.toUpperCase();
+            if (!title.includes(parameters.q.toUpperCase())) {
                 rows.splice(i, 1);
                 i--;    //Needed as we are changing the length of rows as we delete things from it
             }
