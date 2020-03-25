@@ -4,5 +4,5 @@ const authenticate = require('../middleware/authenticate.middleware');
 module.exports = function (app) {
     app.route(app.rootUrl + '/petitions')
         .get(petition.listPetitions)
-        .post(petition.newPetition);
+        .post(authenticate.checkToken, petition.newPetition);
 };
