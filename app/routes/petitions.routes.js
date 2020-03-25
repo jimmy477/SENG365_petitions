@@ -7,5 +7,6 @@ module.exports = function (app) {
         .post(authenticate.checkToken, petition.newPetition);
 
     app.route(app.rootUrl + '/petitions/:id')
-        .get(petition.getPetition);
+        .get(petition.getPetition)
+        .patch(authenticate.checkToken, petition.changePetition);
 };

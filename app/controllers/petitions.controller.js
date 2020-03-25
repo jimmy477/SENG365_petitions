@@ -66,6 +66,25 @@ exports.getPetition = async function (req, res) {
     }
 };
 
+exports.changePetition =async function (req, res) {
+    try {
+        const flag = await checkPatchParameters(req.body);
+        if (flag !== null) {
+            res.statusMessage = flag;
+            res.status(400)
+                .send();
+        } else {
+            await petition.changePetitionById(req.params.id, req.body);
+            res.status(200)
+                .send();
+        }
+    } catch (err) {
+        res.statusMessage = err;
+        res.status(500)
+            .send();
+    }
+};
+
 function checkGetParameters(parameters) {
     let sortby_list = ['ALPHABETICAL_ASC', 'ALPHABETICAL_DESC', 'SIGNATURES_ASC', 'SIGNATURES_DESC'];
     if (parameters.startIndex !== undefined && isNaN(parseFloat(parameters.startIndex))) {
@@ -106,6 +125,19 @@ async function checkPostParameters(parameters) {
         return 'closingDate is not in the future';
     }
     if (!exists) {
+        return 'categoryId does not exist';
+    }
+    return null;
+}
+
+async function checkPatchParameters(parameters) {
+    let current_date = new Date();
+    let now = current_date.toISOString().replace('Z', '').replace('T', ' ');
+    const exists = await petition.checkCategoryId(parameters.categoryId);
+    if (parameters.closingDate !== undefined && parameters.closingDate < now) {
+        return 'closingDate is not in the future';
+    }
+    if (parameters.categoryId !== undefined && !exists) {
         return 'categoryId does not exist';
     }
     return null;
