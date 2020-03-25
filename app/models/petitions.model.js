@@ -6,44 +6,68 @@ exports.getAll = async function (parameters) {
 
     const conn = await db.getPool().getConnection();
     let extra_query = '';
+    let order_by_query = 'ORDER BY signatureCount DESC, p.petition_id ASC';
     let param_array = [];
 
-    if (parameters.q !== undefined) {
-        extra_query += '';
-        param_array.push(parameters.q);
-    }
-    if (parameters.categoryId !== undefined) {
-        extra_query += ' WHERE category_id = ?';
+    if (parameters.categoryId !== undefined && parameters.authorId === undefined) {
+        extra_query += 'AND category_id = ? ';
         param_array.push(parameters.categoryId);
-    }
-    if (parameters.authorId !== undefined) {
-        extra_query += '';
-        param_array.push(parseInt(parameters.authorId));
+    } else if (parameters.categoryId === undefined && parameters.authorId !== undefined) {
+        extra_query += 'AND author_id = ? ';
+        param_array.push(parameters.authorId);
+    } else if (parameters.categoryId !== undefined && parameters.authorId !== undefined) {
+        extra_query += 'AND category_id = ? AND author_id = ? ';
+        param_array.push(parameters.categoryId);
+        param_array.push(parameters.authorId);
     }
     if (parameters.sortBy !== undefined) {
-        extra_query += '';
-        param_array.push(parameters.sortBy);
-    }
-    if (parameters.startIndex !== undefined && parameters.count === undefined) {
-        extra_query += ' LIMIT ?, 9999999';
-        param_array.push(parseInt(parameters.startIndex));
-    }
-    if (parameters.count !== undefined && parameters.startIndex === undefined) {
-        extra_query += ' LIMIT ?';
-        param_array.push(parseInt(parameters.count));
-    }
-    if (parameters.startIndex !== undefined && parameters.count !== undefined) {
-        extra_query += ' LIMIT ?, ?';
-        param_array.push(parseInt(parameters.startIndex));
-        param_array.push(parseInt(parameters.count));
+        switch (parameters.sortBy) {
+            case 'ALPHABETICAL_ASC':
+                order_by_query = 'ORDER BY title ASC';
+                break;
+            case 'ALPHABETICAL_DESC':
+                order_by_query = 'ORDER BY title DESC';
+                break;
+            case 'SIGNATURES_ASC':
+                order_by_query = 'ORDER BY signatureCount ASC, p.petition_id ASC';
+                break;
+            case 'SIGNATURES_DESC':
+                order_by_query = 'ORDER BY signatureCount DESC, p.petition_id ASC';
+                break;
+        }
     }
 
-    // TODO join the tables in order to get all the correct info
-    const query = 'SELECT petition_id, title  FROM Petition' + extra_query;
+    const query = 'SELECT p.petition_id as petitionId, p.title, c.name as category, ' +
+                  'u.name as authorName, count(*) as signatureCount ' +
+                  'FROM Petition p ' +
+                  'LEFT JOIN User u ' +
+                      'ON p.author_id = u.user_id ' +
+                  'LEFT JOIN Category c ' +
+                      'USING (category_id) ' +
+                  'LEFT JOIN Signature s ' +
+                      'USING (petition_id) ' +
+                  'WHERE 1=1 ' +
+                   extra_query +
+                  'GROUP BY p.petition_id ' +
+                   order_by_query;
 
     // console.log(query);
 
-    const [rows] = await conn.query(query, param_array);
+    let [rows] = await conn.query(query, param_array);
     conn.release();
+    if (parameters.q !== undefined) {
+        for (let i = 0; i < rows.length; i++) {
+            if (!rows[i].title.includes(parameters.q)) {
+                rows.splice(i, 1);
+                i--;    //Needed as we are changing the length of rows as we delete things from it
+            }
+        }
+    }
+    if (parameters.startIndex !== undefined) {
+        rows.splice(0, parameters.startIndex);
+    }
+    if (parameters.count !== undefined) {
+        rows = rows.splice(0, parameters.count);
+    }
     return rows;
 };

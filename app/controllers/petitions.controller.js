@@ -13,27 +13,43 @@ exports.list_petitions = async function (req, res) {
         "sortBy": req.query.sortBy
     };
 
-    // TODO Find out how to uncomment this without it causing promise errors.
-    // try {
-    //     checkParameters(parameters);
-    // } catch {
-    //     res.status(400)
-    //         .send('ERROR: parameters given are not correct');
-    // }
+        // res.status(400)
+        //     .send('ERROR: parameters given are not correct');
+
 
     try {
-        const result = await petition.getAll(parameters);
-        res.status(200)
-            .send(result);
+        let flag = checkParameters(parameters);
+        if (flag !== null) {
+            res.statusMessage = flag;
+            res.status(400)
+                .send();
+        } else {
+            const result = await petition.getAll(parameters);
+            res.status(200)
+                .send(result);
+        }
     } catch (err) {
-        // TODO check which error code to send and how to choose the correct one
         res.status(500)
             .send(`ERROR getting petitions ${err}`)
     }
 };
 
 function checkParameters(parameters) {
+    let sortby_list = ['ALPHABETICAL_ASC', 'ALPHABETICAL_DESC', 'SIGNATURES_ASC', 'SIGNATURES_DESC'];
     if (parameters.startIndex !== undefined && isNaN(parseFloat(parameters.startIndex))) {
-        throw 'ERROR: startIndex given is not a number'
+        return 'startIndex given is not a number'
     }
+    if (parameters.count !== undefined && isNaN(parseFloat(parameters.count))) {
+        return 'count given is not a number'
+    }
+    if (parameters.categoryId !== undefined && isNaN(parseFloat(parameters.categoryId))) {
+        return 'categoryId given is not a number'
+    }
+    if (parameters.authorId !== undefined && isNaN(parseFloat(parameters.authorId))) {
+        return 'authorId given is not a number'
+    }
+    if (parameters.sortBy !== undefined && sortby_list.indexOf(parameters.sortBy) < 0) {
+        return 'sortBy given is invalid'
+    }
+    return null;
 }

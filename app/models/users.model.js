@@ -108,7 +108,6 @@ exports.updateUserInfo = async function (user_id, update_info) {
         } else {
             return 'incorrect password'
         }
-
     }
     const query = 'UPDATE User ' + set_query + ' WHERE user_id = ?';
     set_params.push(user_id);
