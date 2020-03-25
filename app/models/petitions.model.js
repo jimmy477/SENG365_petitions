@@ -117,42 +117,47 @@ exports.getPetitionById = async function (id) {
     return petition_info[0]
 };
 
-exports.changePetitionById = async function (id, changes) {
+exports.changePetitionById = async function (auth_token, id, changes) {
     const conn = await db.getPool().getConnection();
-    let set_query = 'SET';
-    let set_params = [];
-    if (changes.title !== undefined) {
-        set_query += ' title = ?';
-        set_params.push(changes.title);
-    }
-    if (changes.description !== undefined) {
-        if (set_params.length < 1) {
-            set_query += ' description = ?';
-        } else {
-            set_query += ', description = ?';
+    const user_id = await authentication.getUserId(auth_token);
+    if (user_id[0].user_id !== id) {
+        return 'cannot change petitions that are not your own';
+    } else {
+        let set_query = 'SET';
+        let set_params = [];
+        if (changes.title !== undefined) {
+            set_query += ' title = ?';
+            set_params.push(changes.title);
         }
-        set_params.push(changes.description);
-    }
-    if (changes.categoryId !== undefined) {
-        if (set_params.length < 1) {
-            set_query += ' category_id = ?';
-        } else {
-            set_query += ', category_id = ?';
+        if (changes.description !== undefined) {
+            if (set_params.length < 1) {
+                set_query += ' description = ?';
+            } else {
+                set_query += ', description = ?';
+            }
+            set_params.push(changes.description);
         }
-        set_params.push(changes.categoryId);
-    }
-    if (changes.closingDate !== undefined) {
-        if (set_params.length < 1) {
-            set_query += ' closing_date = ?';
-        } else {
-            set_query += ', closing_date = ?';
+        if (changes.categoryId !== undefined) {
+            if (set_params.length < 1) {
+                set_query += ' category_id = ?';
+            } else {
+                set_query += ', category_id = ?';
+            }
+            set_params.push(changes.categoryId);
         }
-        set_params.push(changes.closingDate);
+        if (changes.closingDate !== undefined) {
+            if (set_params.length < 1) {
+                set_query += ' closing_date = ?';
+            } else {
+                set_query += ', closing_date = ?';
+            }
+            set_params.push(changes.closingDate);
+        }
+        const query = 'UPDATE Petition ' + set_query + ' WHERE petition_id = ?';
+        set_params.push(id);
+        await conn.query(query, set_params);
+        conn.release();
     }
-    const query = 'UPDATE Petition ' + set_query + ' WHERE petition_id = ?';
-    set_params.push(id);
-    await conn.query(query, set_params);
-    conn.release();
 };
 
 

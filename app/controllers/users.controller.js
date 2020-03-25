@@ -94,7 +94,7 @@ exports.updateInfo = async function (req, res) {
             res.status(400)
                 .send();
         } else {
-            const result = await users.updateUserInfo(req.params.id, req.body);
+            const result = await users.updateUserInfo(req.header('X-Authorization'), req.params.id, req.body);
             if (result == 'no current password given') {
                 res.statusMessage = result;
                 res.status(400)

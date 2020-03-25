@@ -74,9 +74,15 @@ exports.changePetition =async function (req, res) {
             res.status(400)
                 .send();
         } else {
-            await petition.changePetitionById(req.params.id, req.body);
-            res.status(200)
-                .send();
+            const result = await petition.changePetitionById(req.params.id, req.body);
+            if (result === 'cannot change petitions that are not your own') {
+                res.statusMessage = result;
+                res.status(403)
+                    .send();
+            } else {
+                res.status(200)
+                    .send();
+            }
         }
     } catch (err) {
         res.statusMessage = err;
