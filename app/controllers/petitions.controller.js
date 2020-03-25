@@ -48,6 +48,24 @@ exports.newPetition = async function (req, res) {
     }
 };
 
+exports.getPetition = async function (req, res) {
+    try {
+        const petition_info = await petition.getPetitionById(req.params.id);
+        if (petition_info.petitionId === null) {
+            res.statusMessage = 'Could not find petition';
+            res.status(404)
+                .send();
+        } else {
+            res.status(200)
+                .send(petition_info);
+        }
+    } catch (err) {
+        res.statusMessage = err;
+        res.status(500)
+            .send();
+    }
+};
+
 function checkGetParameters(parameters) {
     let sortby_list = ['ALPHABETICAL_ASC', 'ALPHABETICAL_DESC', 'SIGNATURES_ASC', 'SIGNATURES_DESC'];
     if (parameters.startIndex !== undefined && isNaN(parseFloat(parameters.startIndex))) {

@@ -2,7 +2,7 @@ const db = require('../../config/db');
 const authentication = require('../middleware/authenticate.middleware');
 
 exports.getAll = async function (parameters) {
-
+    /* Gets all the petitions which meet the criterea of the parameters */
     const conn = await db.getPool().getConnection();
     let extra_query = '';
     let order_by_query = 'ORDER BY signatureCount DESC, p.petition_id ASC';
@@ -71,11 +71,13 @@ exports.getAll = async function (parameters) {
 };
 
 exports.addNewPetition = async function (auth_token, petition_data) {
+    /* Adds a new petition to the database */
     const conn = await db.getPool().getConnection();
     const query = 'INSERT INTO Petition (title, description, author_id, category_id, created_date, closing_date) ' +
                   'VALUES (?, ?, ?, ?, ?, ?)';
     const user_id = await authentication.getUserId(auth_token);
-    let now = new Date().toISOString().replace('Z', '').replace('T', ' ');
+    // let now = new Date().toISOString().replace('Z', '').replace('T', ' ');
+    let now = new Date();
     const [result] = await conn.query(query, [petition_data.title, petition_data.description, user_id[0].user_id, petition_data.categoryId, now, petition_data.closingDate]);
     conn.release();
     return result.insertId;
@@ -87,4 +89,30 @@ exports.checkCategoryId = async function (categoryId) {
     const query = 'SELECT category_id FROM Category WHERE category_id = ?';
     const [result] = await conn.query(query, [categoryId]);
     return result[0] !== undefined;
+};
+
+exports.getPetitionById = async function (id) {
+    const conn = await db.getPool().getConnection();
+
+    const query = 'SELECT p.petition_id as petitionId,' +
+                         'p.title, ' +
+                         'c.name as category, ' +
+                         'u.name as authorName, ' +
+                         'count(*) as signatureCount, ' +
+                         'p.description, ' +
+                         'p.author_id as authorId, ' +
+                         'u.city, ' +
+                         'u.country, ' +
+                         'p.created_date as createdDate, ' +
+                         'p.closing_date as closingDate ' +
+                  'FROM Petition p ' +
+                         'LEFT JOIN User u ' +
+                             'ON p.author_id = u.user_id ' +
+                         'LEFT JOIN Category c ' +
+                             'USING (category_id) ' +
+                         'LEFT JOIN Signature s ' +
+                             'USING (petition_id) ' +
+                  'WHERE petition_id = ?';
+    const [petition_info] =  await conn.query(query, [id]);
+    return petition_info[0]
 };
