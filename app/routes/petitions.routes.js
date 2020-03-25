@@ -1,7 +1,8 @@
 const petition = require('../controllers/petitions.controller');
+const authenticate = require('../middleware/authenticate.middleware');
 
 module.exports = function (app) {
     app.route(app.rootUrl + '/petitions')
-        .get(petition.list_petitions)
-
+        .get(petition.listPetitions)
+        .post(petition.newPetition);
 };

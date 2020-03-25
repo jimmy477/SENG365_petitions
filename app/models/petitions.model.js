@@ -1,8 +1,7 @@
 const db = require('../../config/db');
+const authentication = require('../middleware/authenticate.middleware');
 
 exports.getAll = async function (parameters) {
-
-    console.log('Request to get all users from the database...');
 
     const conn = await db.getPool().getConnection();
     let extra_query = '';
@@ -51,8 +50,6 @@ exports.getAll = async function (parameters) {
                   'GROUP BY p.petition_id ' +
                    order_by_query;
 
-    // console.log(query);
-
     let [rows] = await conn.query(query, param_array);
     conn.release();
     if (parameters.q !== undefined) {
@@ -71,4 +68,23 @@ exports.getAll = async function (parameters) {
         rows = rows.splice(0, parameters.count);
     }
     return rows;
+};
+
+exports.addNewPetition = async function (auth_token, petition_data) {
+    const conn = await db.getPool().getConnection();
+    const query = 'INSERT INTO Petition (title, description, author_id, category_id, created_date, closing_date) ' +
+                  'VALUES (?, ?, ?, ?, ?, ?)';
+    const user_id = await authentication.getUserId(auth_token);
+    let now = new Date().toISOString().replace('Z', '').replace('T', ' ');
+    const [result] = await conn.query(query, [petition_data.title, petition_data.description, user_id[0].user_id, petition_data.categoryId, now, petition_data.closingDate]);
+    conn.release();
+    return result.insertId;
+};
+
+exports.checkCategoryId = async function (categoryId) {
+    /*Checks the given categoryId exists within the db*/
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT category_id FROM Category WHERE category_id = ?';
+    const [result] = await conn.query(query, [categoryId]);
+    return result[0] !== undefined;
 };

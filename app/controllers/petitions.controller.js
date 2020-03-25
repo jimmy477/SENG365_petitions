@@ -1,8 +1,6 @@
 const petition = require('../models/petitions.model');
 
-exports.list_petitions = async function (req, res) {
-
-    console.log('\nRequest to list all petitions');
+exports.listPetitions = async function (req, res) {
 
     let parameters = {
         "startIndex": req.query.startIndex,
@@ -13,12 +11,8 @@ exports.list_petitions = async function (req, res) {
         "sortBy": req.query.sortBy
     };
 
-        // res.status(400)
-        //     .send('ERROR: parameters given are not correct');
-
-
     try {
-        let flag = checkParameters(parameters);
+        let flag = checkGetParameters(parameters);
         if (flag !== null) {
             res.statusMessage = flag;
             res.status(400)
@@ -34,7 +28,27 @@ exports.list_petitions = async function (req, res) {
     }
 };
 
-function checkParameters(parameters) {
+exports.newPetition = async function (req, res) {
+    try {
+        const flag = await checkPostParameters(req.body);
+        if (flag !== null) {
+            res.statusMessage = flag;
+            res.status(400)
+                .send();
+        } else {
+            console.log(req.header('X-Authorization'));
+            const petition_id = await petition.addNewPetition(req.header('X-Authorization'), req.body);
+            res.status(201)
+                .send({ "petitionId" : petition_id});
+        }
+    } catch (err) {
+        res.statusMessage = err;
+        res.status(500)
+            .send();
+    }
+};
+
+function checkGetParameters(parameters) {
     let sortby_list = ['ALPHABETICAL_ASC', 'ALPHABETICAL_DESC', 'SIGNATURES_ASC', 'SIGNATURES_DESC'];
     if (parameters.startIndex !== undefined && isNaN(parseFloat(parameters.startIndex))) {
         return 'startIndex given is not a number'
@@ -50,6 +64,31 @@ function checkParameters(parameters) {
     }
     if (parameters.sortBy !== undefined && sortby_list.indexOf(parameters.sortBy) < 0) {
         return 'sortBy given is invalid'
+    }
+    return null;
+}
+
+async function checkPostParameters(parameters) {
+    let current_date = new Date();
+    let now = current_date.toISOString().replace('Z', '').replace('T', ' ');
+    const exists = await petition.checkCategoryId(parameters.categoryId);
+    if (parameters.title === undefined) {
+        return 'no title given';
+    }
+    if (parameters.description === undefined) {
+        return 'no description given';
+    }
+    if (parameters.categoryId === undefined) {
+        return 'no categoryId given';
+    }
+    if (parameters.closingDate === undefined) {
+        return 'no closingDate given';
+    }
+    if (parameters.closingDate < now) {
+        return 'closingDate is not in the future';
+    }
+    if (!exists) {
+        return 'categoryId does not exist';
     }
     return null;
 }

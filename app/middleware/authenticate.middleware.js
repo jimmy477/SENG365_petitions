@@ -19,6 +19,11 @@ exports.checkToken = async function (req, res, next) {
     }
 };
 
+exports.getUserId = async function (token) {
+    /* Only to be used after checkToken */
+    return await findUserIdByToken(token);
+};
+
 async function findUserIdByToken(token) {
     const conn = await db.getPool().getConnection();
     const query = 'SELECT user_id FROM User WHERE auth_token = ?';

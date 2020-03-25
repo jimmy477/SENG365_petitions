@@ -104,7 +104,8 @@ exports.updateUserInfo = async function (user_id, update_info) {
             } else {
                 set_query += ', password = ?';
             }
-            set_params.push(update_info.password);
+            const hashed_password = await passwords.hash(update_info.password, 10);
+            set_params.push(hashed_password);
         } else {
             return 'incorrect password'
         }
