@@ -77,7 +77,7 @@ exports.changePetition =async function (req, res) {
             const result = await petition.changePetitionById(req.params.id, req.body);
             if (result === 'cannot change petitions that are not your own') {
                 res.statusMessage = result;
-                res.status(403)
+                res.status(401)
                     .send();
             } else {
                 res.status(200)
@@ -90,6 +90,24 @@ exports.changePetition =async function (req, res) {
             .send();
     }
 };
+
+exports.deletePetition = async function (req, res) {
+    try {
+        const result = await petition.deletePetitionById(req.header('X-Authorization'), req.params.id);
+        if (result === 'cannot delete petitions that are not your own') {
+            res.statusMessage = result;
+            res.status(401)
+                .send();
+        } else {
+            res.status(200)
+                .send();
+        }
+    } catch (err) {
+        res.statusMessage = err;
+        res.status(500)
+            .send();
+    }
+}
 
 function checkGetParameters(parameters) {
     let sortby_list = ['ALPHABETICAL_ASC', 'ALPHABETICAL_DESC', 'SIGNATURES_ASC', 'SIGNATURES_DESC'];

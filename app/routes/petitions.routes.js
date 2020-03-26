@@ -8,5 +8,6 @@ module.exports = function (app) {
 
     app.route(app.rootUrl + '/petitions/:id')
         .get(petition.getPetition)
-        .patch(authenticate.checkToken, petition.changePetition);
+        .patch(authenticate.checkToken, petition.changePetition)
+        .delete(authenticate.checkToken, petition.deletePetition);
 };

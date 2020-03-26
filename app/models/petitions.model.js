@@ -88,6 +88,7 @@ exports.checkCategoryId = async function (categoryId) {
     const conn = await db.getPool().getConnection();
     const query = 'SELECT category_id FROM Category WHERE category_id = ?';
     const [result] = await conn.query(query, [categoryId]);
+    conn.release();
     return result[0] !== undefined;
 };
 
@@ -114,15 +115,17 @@ exports.getPetitionById = async function (id) {
                              'USING (petition_id) ' +
                   'WHERE petition_id = ?';
     const [petition_info] =  await conn.query(query, [id]);
+    conn.release();
     return petition_info[0]
 };
 
-exports.changePetitionById = async function (auth_token, id, changes) {
-    const conn = await db.getPool().getConnection();
+exports.changePetitionById = async function (auth_token, petition_id, changes) {
     const user_id = await authentication.getUserId(auth_token);
-    if (user_id[0].user_id !== id) {
+    const author_id = await getAuthorId(petition_id);
+    if (user_id[0].user_id !== author_id[0].author_id) {
         return 'cannot change petitions that are not your own';
     } else {
+        const conn = await db.getPool().getConnection();
         let set_query = 'SET';
         let set_params = [];
         if (changes.title !== undefined) {
@@ -154,10 +157,29 @@ exports.changePetitionById = async function (auth_token, id, changes) {
             set_params.push(changes.closingDate);
         }
         const query = 'UPDATE Petition ' + set_query + ' WHERE petition_id = ?';
-        set_params.push(id);
+        set_params.push(petition_id);
         await conn.query(query, set_params);
         conn.release();
     }
 };
 
+exports.deletePetitionById = async function (auth_token, id) {
+    const user_id = await authentication.getUserId(auth_token);
+    const author_id = await getAuthorId(petition_id);
+    if (user_id[0].user_id !== author_id[0].author_id) {
+        return 'cannot delete petitions that are not your own';
+    } else {
+        const conn = await db.getPool().getConnection();
+        const query = 'DELETE FROM Petition WHERE petition_id = ?';
+        await conn.query(query, [id]);
+        conn.release();
+    }
+};
+
+async function getAuthorId(petition_id) {
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT author_id FROM Petitions WHERE petition_id = ?';
+    const [author_id] = conn.query(query, [petition_id]);
+    return author_id;
+}
 
