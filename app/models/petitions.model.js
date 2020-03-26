@@ -101,8 +101,8 @@ exports.getPetitionById = async function (id) {
                          'count(*) as signatureCount, ' +
                          'p.description, ' +
                          'p.author_id as authorId, ' +
-                         'u.city as authorCity, ' +
-                         'u.country as authorCountry, ' +
+                         'u.city, ' +
+                         'u.country, ' +
                          'p.created_date as createdDate, ' +
                          'p.closing_date as closingDate ' +
                   'FROM Petition p ' +
