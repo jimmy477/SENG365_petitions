@@ -163,7 +163,7 @@ exports.changePetitionById = async function (auth_token, petition_id, changes) {
     }
 };
 
-exports.deletePetitionById = async function (auth_token, id) {
+exports.deletePetitionById = async function (auth_token, petition_id) {
     const user_id = await authentication.getUserId(auth_token);
     const author_id = await getAuthorId(petition_id);
     if (user_id[0].user_id !== author_id[0].author_id) {
@@ -171,7 +171,7 @@ exports.deletePetitionById = async function (auth_token, id) {
     } else {
         const conn = await db.getPool().getConnection();
         const query = 'DELETE FROM Petition WHERE petition_id = ?';
-        await conn.query(query, [id]);
+        await conn.query(query, [petition_id]);
         conn.release();
     }
 };

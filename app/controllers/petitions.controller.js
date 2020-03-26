@@ -107,7 +107,7 @@ exports.deletePetition = async function (req, res) {
         res.status(500)
             .send();
     }
-}
+};
 
 function checkGetParameters(parameters) {
     let sortby_list = ['ALPHABETICAL_ASC', 'ALPHABETICAL_DESC', 'SIGNATURES_ASC', 'SIGNATURES_DESC'];
