@@ -109,6 +109,18 @@ exports.deletePetition = async function (req, res) {
     }
 };
 
+exports.getCategories = async function (req, res) {
+    try {
+        const categories = await petition.getAllCategories();
+        res.status(200)
+            .send(categories);
+    } catch (err) {
+        res.statusMessage = err;
+        res.status(500)
+            .send()
+    }
+};
+
 function checkGetParameters(parameters) {
     let sortby_list = ['ALPHABETICAL_ASC', 'ALPHABETICAL_DESC', 'SIGNATURES_ASC', 'SIGNATURES_DESC'];
     if (parameters.startIndex !== undefined && isNaN(parseFloat(parameters.startIndex))) {

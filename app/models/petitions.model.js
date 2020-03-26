@@ -176,6 +176,14 @@ exports.deletePetitionById = async function (auth_token, petition_id) {
     }
 };
 
+exports.getAllCategories = async function () {
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT category_id as categoryId, name FROM Category';
+    const [categories] = await conn.query(query);
+    conn.release();
+    return categories;
+};
+
 async function getAuthorId(petition_id) {
     const conn = await db.getPool().getConnection();
     const query = 'SELECT author_id FROM Petition WHERE petition_id = ?';
