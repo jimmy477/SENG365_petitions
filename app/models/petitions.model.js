@@ -178,8 +178,8 @@ exports.deletePetitionById = async function (auth_token, id) {
 
 async function getAuthorId(petition_id) {
     const conn = await db.getPool().getConnection();
-    const query = 'SELECT author_id FROM Petitions WHERE petition_id = ?';
-    const [author_id] = conn.query(query, [petition_id]);
+    const query = 'SELECT author_id FROM Petition WHERE petition_id = ?';
+    const [author_id] = await conn.query(query, [petition_id]);
     return author_id;
 }
 
