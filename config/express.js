@@ -13,6 +13,8 @@ module.exports = function () {
     app.use(bodyParser.json());
     app.use(bodyParser.raw({ type: 'text/plain' }));  // for the /executeSql endpoint
 
+    app.use(express.static('../storage/photos'));
+
     // DEBUG (you can remove these)
     app.use((req, res, next) => {
         console.log(`##### ${req.method} ${req.path} #####`);
@@ -27,6 +29,7 @@ module.exports = function () {
     require('../app/routes/backdoor.routes')(app);
     require('../app/routes/petitions.routes')(app);
     require('../app/routes/users.routes')(app);
+    require('../app/routes/users.photos.route')(app);
 
     return app;
 };
