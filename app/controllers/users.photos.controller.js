@@ -29,10 +29,11 @@ exports.getProfilePhoto = async function (req, res) {
 
 exports.setProfilePhoto = async function (req, res) {
     try {
+        const reader = FileReader();
+        console.log(reader(req.body));
         const auth_id = await authentication.getUserId(req.header('X-Authorization'));
-        console.log(auth_id, req.params.id);
         if (auth_id != req.params.id) {
-            res.status(401)
+            res.status(403)
                 .send();
         } else {
             const existed = await photos.setPhotoForId(req.params.id, req.header('Content-Type'), req.body);
