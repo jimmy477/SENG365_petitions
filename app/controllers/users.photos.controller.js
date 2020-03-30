@@ -29,7 +29,8 @@ exports.getProfilePhoto = async function (req, res) {
 
 exports.setProfilePhoto = async function (req, res) {
     try {
-        const auth_id = authentication.getUserId(req.header('X-Authorization'));
+        const auth_id = await authentication.getUserId(req.header('X-Authorization'));
+        console.log(auth_id, req.params.id);
         if (auth_id != req.params.id) {
             res.status(401)
                 .send();

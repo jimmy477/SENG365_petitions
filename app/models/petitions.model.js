@@ -78,7 +78,7 @@ exports.addNewPetition = async function (auth_token, petition_data) {
     const user_id = await authentication.getUserId(auth_token);
     // let now = new Date().toISOString().replace('Z', '').replace('T', ' ');
     let now = new Date();
-    const [result] = await conn.query(query, [petition_data.title, petition_data.description, user_id[0].user_id, petition_data.categoryId, now, petition_data.closingDate]);
+    const [result] = await conn.query(query, [petition_data.title, petition_data.description, user_id, petition_data.categoryId, now, petition_data.closingDate]);
     conn.release();
     return result.insertId;
 };
@@ -122,7 +122,7 @@ exports.getPetitionById = async function (id) {
 exports.changePetitionById = async function (auth_token, petition_id, changes) {
     const user_id = await authentication.getUserId(auth_token);
     const author_id = await getAuthorId(petition_id);
-    if (user_id[0].user_id !== author_id[0].author_id) {
+    if (user_id !== author_id[0].author_id) {
         return 'cannot change petitions that are not your own';
     } else {
         const conn = await db.getPool().getConnection();
@@ -166,7 +166,7 @@ exports.changePetitionById = async function (auth_token, petition_id, changes) {
 exports.deletePetitionById = async function (auth_token, petition_id) {
     const user_id = await authentication.getUserId(auth_token);
     const author_id = await getAuthorId(petition_id);
-    if (user_id[0].user_id !== author_id[0].author_id) {
+    if (user_id !== author_id[0].author_id) {
         return 'cannot delete petitions that are not your own';
     } else {
         const conn = await db.getPool().getConnection();

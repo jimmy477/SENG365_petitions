@@ -21,7 +21,8 @@ exports.checkToken = async function (req, res, next) {
 
 exports.getUserId = async function (token) {
     /* Only to be used after checkToken */
-    return await findUserIdByToken(token);
+    const user_id = await findUserIdByToken(token);
+    return user_id[0].user_id
 };
 
 async function findUserIdByToken(token) {
