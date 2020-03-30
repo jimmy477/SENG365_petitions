@@ -1,5 +1,7 @@
 const photos = require('../models/users.photos.model');
 const path = require('path');
+const authentication = require('../middleware/authenticate.middleware');
+
 
 exports.getProfilePhoto = async function (req, res) {
     try {
@@ -17,6 +19,29 @@ exports.getProfilePhoto = async function (req, res) {
             res.contentType('image/' + profile_photo_name.slice(type_start));
             res.status(200)
                 .sendFile(path.join(__dirname, '../../storage/photos', profile_photo_name));
+        }
+    } catch (err) {
+        res.statusMessage = err;
+        res.status(500)
+            .send();
+    }
+};
+
+exports.setProfilePhoto = async function (req, res) {
+    try {
+        const auth_id = authentication.getUserId(req.header('X-Authorization'));
+        if (auth_id != req.params.id) {
+            res.status(401)
+                .send();
+        } else {
+            const existed = await photos.setPhotoForId(req.params.id, req.header('Content-Type'), req.body);
+            if (existed === null) {
+                res.status(201)
+                    .send();
+            } else {
+                res.status(200)
+                    .send();
+            }
         }
     } catch (err) {
         res.statusMessage = err;
