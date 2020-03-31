@@ -2,6 +2,21 @@ const db = require('../../config/db');
 const fs = require('mz/fs');
 const photos_directory = './storage/photos/';
 
+
+exports.getPetitionPhotoById = async function (petition_id) {
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT photo_filename FROM Petition WHERE petitioin_id = ?';
+    const [photo] = await conn.query(query, [petition_id]);
+    conn.release();
+    try {
+        return photo[0].photo_filename;
+    } catch (err) {
+        return 'Could not find photo';
+    }
+};
+
+
+
 exports.setPetitionPhotoById = async function (petition_id, content_type, photo_buffer) {
     const current_filename = await checkIfPhotoExists(petition_id);
     const filename = createFilename(petition_id, content_type);
