@@ -1,6 +1,5 @@
 const db = require('../../config/db');
 const fs = require('mz/fs');
-
 const photos_directory = './storage/photos/';
 
 exports.getPhotoById = async function (id) {
@@ -15,6 +14,7 @@ exports.getPhotoById = async function (id) {
     }
 };
 
+
 exports.setPhotoForId = async function (user_id, content_type, photo_buffer) {
     /* Checks if there is already a photo set for the user and updates it to the new
        photo from the photo_buffer. Returns null if no filename was present before
@@ -28,6 +28,7 @@ exports.setPhotoForId = async function (user_id, content_type, photo_buffer) {
     fs.writeFileSync(photos_directory + filename, photo_buffer);
     return current_filename[0].photo_filename;
 };
+
 
 exports.deletePhotoById = async function (user_id) {
     const conn = await db.getPool().getConnection();
@@ -45,6 +46,7 @@ exports.deletePhotoById = async function (user_id) {
     }
 };
 
+
 async function checkIfPhotoExists(user_id) {
     const conn = await db.getPool().getConnection();
     const query = 'SELECT photo_filename FROM User WHERE user_id = ?';
@@ -52,6 +54,7 @@ async function checkIfPhotoExists(user_id) {
     conn.release();
     return filename;
 }
+
 
 function createFilename(user_id, content_type) {
     /* Creates a filename based on the current time and user_id */
