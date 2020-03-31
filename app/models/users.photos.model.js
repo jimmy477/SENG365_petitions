@@ -34,8 +34,9 @@ exports.deletePhotoById = async function (user_id) {
     const filename_query = 'SELECT photo_filename FROM User WHERE user_id = ?';
     const query = 'UPDATE User SET photo_filename = null WHERE user_id = ?';
     const [filename] = await conn.query(filename_query, [user_id]);
-    await conn.query(query, [user_id]);
+    const [result] = await conn.query(query, [user_id]);
     conn.release();
+    console.log(result);
     if (filename[0].photo_filename === null) {
         return 'not found';
     } else {

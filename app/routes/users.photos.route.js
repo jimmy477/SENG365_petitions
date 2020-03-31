@@ -5,5 +5,5 @@ module.exports = function (app) {
     app.route(app.rootUrl + '/users/:id/photo')
         .get(user_photos.getProfilePhoto)
         .put(authentication.checkToken, user_photos.setProfilePhoto)
-        .delete(user_photos.deleteProfilePhoto);
+        .delete(authentication.checkIdExists, authentication.checkToken, user_photos.deleteProfilePhoto);
 };
