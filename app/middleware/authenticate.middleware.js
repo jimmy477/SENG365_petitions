@@ -4,7 +4,6 @@ exports.checkToken = async function (req, res, next) {
     const token = req.header('X-Authorization');
     try {
         const result = await findUserIdByToken(token);
-        console.log(result);
         if (result[0] === undefined) {
             res.statusMessage = 'Unauthorized';
             res.status(401)
@@ -14,7 +13,6 @@ exports.checkToken = async function (req, res, next) {
             next();
         }
     } catch (err) {
-        res.statusMessage = 'Internal Server Error';
         res.status(500)
             .send();
     }
@@ -23,7 +21,7 @@ exports.checkToken = async function (req, res, next) {
 exports.checkIdExists = async function (req, res, next) {
     try {
         const conn = await db.getPool().getConnection();
-        const query = 'SELECT name FROM User WHERE user_id = ?';
+        const query = 'SELECT title FROM Petition WHERE petition_id = ?';
         const [result] = await conn.query(query, [req.params.id]);
         conn.release();
         if (result[0] === undefined) {
@@ -43,6 +41,14 @@ exports.getUserId = async function (token) {
     /* Only to be used after checkToken */
     const user_id = await findUserIdByToken(token);
     return user_id[0].user_id
+};
+
+exports.getUserIdFromPetitionId = async function (petition_id) {
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT author_id FROM Petition WHERE petition_id = ?';
+    const [user_id] = await conn.query(query, [petition_id]);
+    conn.release();
+    return user_id;
 };
 
 async function findUserIdByToken(token) {

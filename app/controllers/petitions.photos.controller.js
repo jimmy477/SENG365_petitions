@@ -5,7 +5,8 @@ const petition_photo = require('../models/petitions.photos.model');
 exports.setPetitionPhoto = async function (req, res) {
     try {
         const auth_id = await authentication.getUserId(req.header('X-Authorization'));
-        if (auth_id != req.params.id) {
+        const user_id = await authentication.getUserIdFromPetitionId(req.params.id);
+        if (auth_id != user_id[0].author_id) {
             res.status(403)
                 .send();
         } else {
