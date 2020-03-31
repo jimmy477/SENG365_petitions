@@ -1,6 +1,7 @@
 const db = require('../../config/db');
 const fs = require('mz/fs');
 
+const photos_directory = './storage/photos/';
 
 exports.getPhotoById = async function (id) {
     const conn = await db.getPool().getConnection();
@@ -24,8 +25,23 @@ exports.setPhotoForId = async function (user_id, content_type, photo_buffer) {
     const query = 'UPDATE User SET photo_filename = ? WHERE user_id = ?';
     await conn.query(query, [filename, user_id]);
     conn.release();
-    fs.writeFileSync('./storage/photos/' + filename, photo_buffer);
+    fs.writeFileSync(photos_directory + filename, photo_buffer);
     return current_filename[0].photo_filename;
+};
+
+exports.deletePhotoById = async function (user_id) {
+    const conn = await db.getPool().getConnection();
+    const filename_query = 'SELECT photo_filename FROM User WHERE user_id = ?';
+    const query = 'UPDATE User SET photo_filename = null WHERE user_id = ?';
+    const [filename] = await conn.query(filename_query, [user_id]);
+    await conn.query(query, [user_id]);
+    conn.release();
+    if (filename[0].photo_filename === null) {
+        return 'not found';
+    } else {
+        await fs.unlink(photos_directory + filename[0].photo_filename);
+        return 'found'
+    }
 };
 
 async function checkIfPhotoExists(user_id) {

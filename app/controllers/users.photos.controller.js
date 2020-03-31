@@ -49,3 +49,26 @@ exports.setProfilePhoto = async function (req, res) {
             .send();
     }
 };
+
+exports.deleteProfilePhoto = async function (req, res) {
+    try {
+        const auth_id = await authentication.getUserId(req.header('X-Authorization'));
+        if (auth_id != req.params.id) {
+            res.status(403)
+                .send();
+        } else {
+            const result = await photos.deletePhotoById(req.params.id);
+            if (result === 'not found') {
+                res.status(404)
+                    .send();
+            } else {
+                res.status(200)
+                    .send();
+            }
+        }
+    } catch (err ) {
+        res.statusMessage = err;
+        res.status(500)
+            .send();
+    }
+};
