@@ -38,9 +38,17 @@ exports.addSignatureWithId = async function (petition_id, user_id) {
 
 
 exports.deleteSignatureWithId = async function (petition_id, user_id) {
+    console.log('a');
+
     const already_signed_petition = await checkUserSigned(user_id, petition_id);
+    console.log('a');
+
     const user_created_petition = await checkUserCreatedPetition(user_id, petition_id);
+    console.log('a');
+
     const petition_open = await checkPetitionOpen(petition_id);
+    console.log('a');
+
     if (!already_signed_petition) {
         return 'Cannot remove signature from petition you have not signed';
     } else if (user_created_petition) {
@@ -49,7 +57,7 @@ exports.deleteSignatureWithId = async function (petition_id, user_id) {
         return 'Petition has closed'
     } else {
         const conn = await db.getPool().getConnection();
-        const query = 'DELETE FROM Signature WHERE petition_id = ? AND user_id = ?';
+        const query = 'DELETE FROM Signature WHERE petition_id = ? AND signatory_id = ?';
         const result = await conn.query(query, [petition_id, user_id]);
         return result
     }
