@@ -1,6 +1,7 @@
 const photos = require('../models/users.photos.model');
 const path = require('path');
 const authentication = require('../middleware/authenticate.middleware');
+const accepted_mime_types = ['image/png', 'image/jpeg', 'image/gif'];
 
 
 exports.getProfilePhoto = async function (req, res) {
@@ -32,6 +33,9 @@ exports.setProfilePhoto = async function (req, res) {
         const auth_id = await authentication.getUserId(req.header('X-Authorization'));
         if (auth_id != req.params.id) {
             res.status(403)
+                .send();
+        } else if (accepted_mime_types.indexOf(req.header('Content-Type')) < 0) {
+            res.status(400)
                 .send();
         } else {
             const existed = await photos.setPhotoForId(req.params.id, req.header('Content-Type'), req.body);

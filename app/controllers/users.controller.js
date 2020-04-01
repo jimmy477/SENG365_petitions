@@ -2,9 +2,6 @@ const users = require('../models/users.model');
 
 
 exports.register = async function (req, res) {
-
-    console.log('\nRequest to register a new user');
-
     try {
         if (req.body.name === undefined) {
             res.status(400)
@@ -30,9 +27,6 @@ exports.register = async function (req, res) {
 };
 
 exports.login = async function (req, res) {
-
-    console.log('\nTrying to login');
-
     try {
         const result = await users.login(req.body);
         if (result === null) {
@@ -51,9 +45,6 @@ exports.login = async function (req, res) {
 };
 
 exports.logout = async function (req, res) {
-
-    console.log('\nTrying to logout');
-
     try {
         users.logout(req.authenticatedUserId);
         res.status(200)
@@ -65,9 +56,6 @@ exports.logout = async function (req, res) {
 };
 
 exports.getInfo = async function (req, res) {
-
-    console.log('\nRetrieving user info');
-
     try {
         const user_info = await users.getUserInfo(req.params.id, req.header('X-Authorization'));
         if (user_info === null) {
@@ -85,9 +73,6 @@ exports.getInfo = async function (req, res) {
 };
 
 exports.updateInfo = async function (req, res) {
-
-    console.log('\nAttempting to update user info');
-
     try {
         if (Object.keys(req.body).length === 0) {
             res.statusMessage = 'no changes provided';

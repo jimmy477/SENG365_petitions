@@ -1,6 +1,7 @@
 const authentication = require('../middleware/authenticate.middleware');
 const petition_photo = require('../models/petitions.photos.model');
 const path = require('path');
+const accepted_mime_types = ['image/png', 'image/jpeg', 'image/gif'];
 
 
 exports.getPetitionPhoto = async function (req, res) {
@@ -35,6 +36,9 @@ exports.setPetitionPhoto = async function (req, res) {
         const user_id = await authentication.getUserIdFromPetitionId(req.params.id);
         if (auth_id != user_id[0].author_id) {
             res.status(403)
+                .send();
+        } else if (accepted_mime_types.indexOf(req.header('Content-Type')) < 0) {
+            res.status(400)
                 .send();
         } else {
             const existed = await petition_photo.setPetitionPhotoById(req.params.id, req.header('Content-Type'), req.body);

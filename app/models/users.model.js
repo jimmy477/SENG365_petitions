@@ -54,7 +54,6 @@ exports.getUserInfo = async function (user_id, token) {
     if (user_info[0] === undefined) {
         return null;
     }
-    console.log(' a', result_id);
     if (result_id[0] === undefined || result_id[0].user_id != user_id) {
         delete user_info[0].email;
     }
