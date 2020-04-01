@@ -4,27 +4,34 @@ const users = require('../models/users.model');
 exports.register = async function (req, res) {
     try {
         if (req.body.name === undefined) {
+            res.statusMessage = 'No user name given';
             res.status(400)
-                .send("ERROR no name given" );
+                .send();
+        } else if (req.body.password.length < 1) {
+            res.statusMessage = 'No password given';
+            res.status(400)
+                .send();
         } else if (!req.body.email.includes('@')) {
+            res.statusMessage = "Email invalid";
             res.status(400)
-                .send("ERROR email invalid")
+                .send()
         } else {
             const userId = await users.registerUser(req.body);
-            console.log("User registered successfully");
             res.status(201)
                 .send({"userId": userId})
         }
     } catch (err) {
         if (err.code === 'ER_DUP_ENTRY') {
+            res.statusMessage = 'Email is already registered to a user';
             res.status(400)
-                .send("ERROR duplicate email");
+                .send();
         } else {
             res.status(500)
                 .send(`ERROR registering user ${err}`);
         }
     }
 };
+
 
 exports.login = async function (req, res) {
     try {
@@ -34,7 +41,6 @@ exports.login = async function (req, res) {
             res.status(400)
                 .send();
         } else {
-            console.log("Login successfull");
             res.status(200)
                 .send(result);
         }
@@ -43,6 +49,7 @@ exports.login = async function (req, res) {
             .send(err);
     }
 };
+
 
 exports.logout = async function (req, res) {
     try {
@@ -54,6 +61,7 @@ exports.logout = async function (req, res) {
             .send(err);
     }
 };
+
 
 exports.getInfo = async function (req, res) {
     try {
@@ -72,19 +80,23 @@ exports.getInfo = async function (req, res) {
     }
 };
 
+
 exports.updateInfo = async function (req, res) {
     try {
-        if (Object.keys(req.body).length === 0) {
-            res.statusMessage = 'no changes provided';
+        if (Object.keys(req.body).length === 0) {  // No details provided to change (Bad Request)
+            res.statusMessage = 'No changes provided';
             res.status(400)
                 .send();
+        } else if (req.authenticatedUserId !== req.params.id) {  // Check if trying to change data of a different user
+            res.status(403)
+                .send();
         } else {
-            const result = await users.updateUserInfo(req.params.id, req.body);
-            if (result == 'no current password given') {
+            const result = await users.updateUserInfo(req.authenticatedUserId, req.body);
+            if (result === 'No current password given') {
                 res.statusMessage = result;
                 res.status(400)
                     .send();
-            } else if (result == 'incorrect password') {
+            } else if (result === 'Incorrect password') {
                 res.statusMessage = result;
                 res.status(400)
                     .send();

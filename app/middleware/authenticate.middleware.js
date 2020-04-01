@@ -1,15 +1,17 @@
 const db = require('../../config/db');
 
 exports.checkToken = async function (req, res, next) {
+    /* Checks the authentication token given in the request to see if it matched a user in the database, if it is,
+       it adds the user_id it matched to the request and continues */
     const token = req.header('X-Authorization');
     try {
         const result = await findUserIdByToken(token);
-        if (result[0] === undefined) {
+        if (result[0] === undefined) {  // No user with the given authentication token
             res.statusMessage = 'Unauthorized';
             res.status(401)
                 .send();
         } else {
-            req.authenticatedUserId = result[0].user_id.toString();
+            req.authenticatedUserId = result[0].user_id.toString();  // Adds the user_id to the header to be used by other functions
             next();
         }
     } catch (err) {
