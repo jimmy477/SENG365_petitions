@@ -23,8 +23,32 @@ exports.addSignature =async function (req, res) {
             res.statusMessage = result;
             res.status(403)
                 .send()
+        } else if (result === 'Petition has closed') {
+            res.statusMessage = result;
+            res.status(403)
+                .send();
         } else {
             res.status(201)
+                .send();
+        }
+    } catch (err) {
+        res.statusMessage = err;
+        res.status(500)
+            .send();
+    }
+};
+
+
+exports.deleteSignature = async function (req, res) {
+    try {
+        const user_id = await authentication.getUserId(req.header('X-Authorization'));
+        const result = await signatures.deleteSignatureWithId(req.params.id, user_id);
+        if (typeof result === "string") {
+            res.statusMessage = result;
+            res.status(403)
+                .send();
+        } else {
+            res.status(200)
                 .send();
         }
     } catch (err) {
