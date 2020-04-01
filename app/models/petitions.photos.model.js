@@ -5,7 +5,7 @@ const photos_directory = './storage/photos/';
 
 exports.getPetitionPhotoById = async function (petition_id) {
     const conn = await db.getPool().getConnection();
-    const query = 'SELECT photo_filename FROM Petition WHERE petitioin_id = ?';
+    const query = 'SELECT photo_filename FROM Petition WHERE petition_id = ?';
     const [photo] = await conn.query(query, [petition_id]);
     conn.release();
     try {
@@ -14,7 +14,6 @@ exports.getPetitionPhotoById = async function (petition_id) {
         return 'Could not find photo';
     }
 };
-
 
 
 exports.setPetitionPhotoById = async function (petition_id, content_type, photo_buffer) {
@@ -26,6 +25,23 @@ exports.setPetitionPhotoById = async function (petition_id, content_type, photo_
     conn.release();
     fs.writeFileSync(photos_directory + filename, photo_buffer);
     return current_filename[0].photo_filename;
+};
+
+
+exports.deletePhotoById = async function (petition_id) {
+    const conn = await db.getPool().getConnection();
+    const filename_query = 'SELECT photo_filename FROM Petition WHERE petition_id = ?';
+    const query = 'UPDATE Petition SET photo_filename = null WHERE petition_id = ?';
+    const [filename] = await conn.query(filename_query, [petition_id]);
+    const [result] = await conn.query(query, [petition_id]);
+    conn.release();
+    console.log(result);
+    if (filename[0].photo_filename === null) {
+        return 'not found';
+    } else {
+        await fs.unlink(photos_directory + filename[0].photo_filename);
+        return 'found'
+    }
 };
 
 

@@ -18,7 +18,28 @@ exports.checkToken = async function (req, res, next) {
     }
 };
 
-exports.checkIdExists = async function (req, res, next) {
+
+exports.checkUserIdExists = async function (req, res, next) {
+    try {
+        const conn = await db.getPool().getConnection();
+        const query = 'SELECT name FROM User WHERE user_id = ?';
+        const [result] = await conn.query(query, [req.params.id]);
+        conn.release();
+        if (result[0] === undefined) {
+            res.status(404)
+                .send();
+        } else {
+            next();
+        }
+    } catch (err) {
+        res.statusMessage = err;
+        res.status(500)
+            .send();
+    }
+};
+
+
+exports.checkPetitionIdExists = async function (req, res, next) {
     try {
         const conn = await db.getPool().getConnection();
         const query = 'SELECT title FROM Petition WHERE petition_id = ?';
