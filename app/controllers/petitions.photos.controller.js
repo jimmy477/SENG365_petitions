@@ -52,28 +52,3 @@ exports.setPetitionPhoto = async function (req, res) {
             .send();
     }
 };
-
-
-exports.deletePetitionPhoto = async function (req, res) {
-    try {
-        const auth_id = await authentication.getUserId(req.header('X-Authorization'));
-        const user_id = await authentication.getUserIdFromPetitionId(req.params.id);
-        if (auth_id != user_id[0].author_id) {
-            res.status(403)
-                .send();
-        } else {
-            const result = await petition_photo.deletePhotoById(req.params.id);
-            if (result === 'not found') {
-                res.status(404)
-                    .send();
-            } else {
-                res.status(200)
-                    .send();
-            }
-        }
-    } catch (err ) {
-        res.statusMessage = err;
-        res.status(500)
-            .send();
-    }
-};
