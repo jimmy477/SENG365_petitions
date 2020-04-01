@@ -74,10 +74,11 @@ async function checkUserSigned(user_id, petition_id) {
 
 async function checkPetitionOpen(petition_id) {
     const conn = await db.getPool().getConnection();
-    const query = 'SELECT signed_date FROM Signature WHERE petition_id = ?';
-    const signed_date = await conn.query(query, [petition_id]);
+    const query = 'SELECT closing_date FROM Petition WHERE petition_id = ?';
+    let signed_date = await conn.query(query, [petition_id]);
+    signed_date = signed_date[0][0].closing_date;
     const current_date = new Date();
-    return current_date >= signed_date;
+    return current_date < signed_date;
 }
 
 
