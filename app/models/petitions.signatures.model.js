@@ -32,23 +32,16 @@ exports.addSignatureWithId = async function (petition_id, user_id) {
         const query = 'INSERT INTO Signature (signatory_id, petition_id, signed_date) ' +
             'VALUES (?, ?, ?)';
         const [result] = await conn.query(query, [user_id, petition_id, date]);
+        conn.release();
         return result;
     }
 };
 
 
 exports.deleteSignatureWithId = async function (petition_id, user_id) {
-    console.log('a');
-
     const already_signed_petition = await checkUserSigned(user_id, petition_id);
-    console.log('a');
-
     const user_created_petition = await checkUserCreatedPetition(user_id, petition_id);
-    console.log('a');
-
     const petition_open = await checkPetitionOpen(petition_id);
-    console.log('a');
-
     if (!already_signed_petition) {
         return 'Cannot remove signature from petition you have not signed';
     } else if (user_created_petition) {
@@ -59,6 +52,7 @@ exports.deleteSignatureWithId = async function (petition_id, user_id) {
         const conn = await db.getPool().getConnection();
         const query = 'DELETE FROM Signature WHERE petition_id = ? AND signatory_id = ?';
         const result = await conn.query(query, [petition_id, user_id]);
+        conn.release();
         return result
     }
 };
@@ -68,6 +62,7 @@ async function checkUserCreatedPetition(user_id, petition_id) {
     const conn = await db.getPool().getConnection();
     const query = 'SELECT author_id FROM Petition WHERE petition_id = ?';
     const author = await conn.query(query, [petition_id]);
+    conn.release();
     return author == user_id;
 }
 
@@ -76,6 +71,7 @@ async function checkUserSigned(user_id, petition_id) {
     const conn = await db.getPool().getConnection();
     const query = 'SELECT signatory_id FROM Signature WHERE petition_id = ? AND signatory_id = ?';
     const [users] = await conn.query(query, [petition_id, user_id]);
+    conn.release();
     return users.length > 0;
 }
 
@@ -83,7 +79,9 @@ async function checkUserSigned(user_id, petition_id) {
 async function checkPetitionOpen(petition_id) {
     const conn = await db.getPool().getConnection();
     const query = 'SELECT closing_date FROM Petition WHERE petition_id = ?';
+
     let signed_date = await conn.query(query, [petition_id]);
+    conn.release();
     signed_date = signed_date[0][0].closing_date;
     const current_date = new Date();
     return current_date < signed_date;
