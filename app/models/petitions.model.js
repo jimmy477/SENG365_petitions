@@ -20,7 +20,6 @@ exports.getAll = async function (parameters) {
                    extra_query +
                   'GROUP BY p.petition_id ' +
                    order_by_query;
-
     let [rows] = await conn.query(query, param_array);
     conn.release();
     if (parameters.q !== undefined) {
@@ -133,11 +132,11 @@ function createExtraQuery(category_id, author_id) {
     if (category_id !== undefined) {
         extra_query += 'AND category_id = ? ';
         param_array.push(category_id);
-    } else if (author_id !== undefined) {
+    } if (author_id !== undefined) {
         extra_query += 'AND author_id = ? ';
         param_array.push(author_id);
     }
-    return [extra_query, category_id];
+    return [extra_query, param_array];
 }
 
 

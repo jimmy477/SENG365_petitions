@@ -20,7 +20,7 @@ exports.checkToken = async function (req, res, next) {
     }
 };
 
-
+// TODO check if these functions are used anywhere after refactoring
 exports.checkUserIdExists = async function (req, res, next) {
     try {
         const conn = await db.getPool().getConnection();
