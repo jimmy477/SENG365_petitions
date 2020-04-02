@@ -1,41 +1,12 @@
 const db = require('../../config/db');
 const authentication = require('../middleware/authenticate.middleware');
 
+
 exports.getAll = async function (parameters) {
-    /* Gets all the petitions which meet the criterea of the parameters */
+    /* Gets all the petitions which meet the criteria of the parameters */
     const conn = await db.getPool().getConnection();
-    let extra_query = '';
-    let order_by_query = 'ORDER BY signatureCount DESC, p.petition_id ASC';
-    let param_array = [];
-
-    if (parameters.categoryId !== undefined && parameters.authorId === undefined) {
-        extra_query += 'AND category_id = ? ';
-        param_array.push(parameters.categoryId);
-    } else if (parameters.categoryId === undefined && parameters.authorId !== undefined) {
-        extra_query += 'AND author_id = ? ';
-        param_array.push(parameters.authorId);
-    } else if (parameters.categoryId !== undefined && parameters.authorId !== undefined) {
-        extra_query += 'AND category_id = ? AND author_id = ? ';
-        param_array.push(parameters.categoryId);
-        param_array.push(parameters.authorId);
-    }
-    if (parameters.sortBy !== undefined) {
-        switch (parameters.sortBy) {
-            case 'ALPHABETICAL_ASC':
-                order_by_query = 'ORDER BY title ASC';
-                break;
-            case 'ALPHABETICAL_DESC':
-                order_by_query = 'ORDER BY title DESC';
-                break;
-            case 'SIGNATURES_ASC':
-                order_by_query = 'ORDER BY signatureCount ASC, p.petition_id ASC';
-                break;
-            case 'SIGNATURES_DESC':
-                order_by_query = 'ORDER BY signatureCount DESC, p.petition_id ASC';
-                break;
-        }
-    }
-
+    const [extra_query, param_array] = createExtraQuery(parameters.categoryId, parameters.authorId);
+    const order_by_query = createOrderByQuery(parameters.sortBy);
     const query = 'SELECT p.petition_id as petitionId, p.title, c.name as category, ' +
                   'u.name as authorName, count(*) as signatureCount ' +
                   'FROM Petition p ' +
@@ -54,43 +25,33 @@ exports.getAll = async function (parameters) {
     conn.release();
     if (parameters.q !== undefined) {
         for (let i = 0; i < rows.length; i++) {
-            let title = rows[i].title.toUpperCase();
-            if (!title.includes(parameters.q.toUpperCase())) {
+            const title = rows[i].title.toUpperCase();
+            if (!title.includes(parameters.q.toUpperCase())) {  // If title does not include the search parameter q, remove from rows
                 rows.splice(i, 1);
-                i--;    //Needed as we are changing the length of rows as we delete things from it
+                i--;  //Needed as we are changing the length of rows as we delete things from it
             }
         }
     }
-    if (parameters.startIndex !== undefined) {
+    if (parameters.startIndex !== undefined) {  // Removes all rows upto startIndex
         rows.splice(0, parameters.startIndex);
     }
-    if (parameters.count !== undefined) {
+    if (parameters.count !== undefined) {  // Removes all rows after the count
         rows = rows.splice(0, parameters.count);
     }
     return rows;
 };
 
-exports.addNewPetition = async function (auth_token, petition_data) {
+exports.addNewPetition = async function (user_id, petition_data) {
     /* Adds a new petition to the database */
     const conn = await db.getPool().getConnection();
     const query = 'INSERT INTO Petition (title, description, author_id, category_id, created_date, closing_date) ' +
                   'VALUES (?, ?, ?, ?, ?, ?)';
-    const user_id = await authentication.getUserId(auth_token);
-    // let now = new Date().toISOString().replace('Z', '').replace('T', ' ');
-    let now = new Date();
+    const now = new Date();
     const [result] = await conn.query(query, [petition_data.title, petition_data.description, user_id, petition_data.categoryId, now, petition_data.closingDate]);
     conn.release();
     return result.insertId;
 };
 
-exports.checkCategoryId = async function (categoryId) {
-    /*Checks the given categoryId exists within the db*/
-    const conn = await db.getPool().getConnection();
-    const query = 'SELECT category_id FROM Category WHERE category_id = ?';
-    const [result] = await conn.query(query, [categoryId]);
-    conn.release();
-    return result[0] !== undefined;
-};
 
 exports.getPetitionById = async function (id) {
     const conn = await db.getPool().getConnection();
@@ -119,59 +80,33 @@ exports.getPetitionById = async function (id) {
     return petition_info[0]
 };
 
-exports.changePetitionById = async function (auth_token, petition_id, changes) {
-    const user_id = await authentication.getUserId(auth_token);
+
+exports.changePetitionById = async function (user_id, petition_id, changes) {
     const author_id = await getAuthorId(petition_id);
-    if (user_id !== author_id[0].author_id) {
-        return 'cannot change petitions that are not your own';
+    if (author_id.length === 0) {
+        return 'Petition does not exist';
+    } else if (user_id != author_id[0].author_id) {
+        return 'Cannot change petitions that are not your own';
     } else {
         const conn = await db.getPool().getConnection();
-        let set_query = 'SET';
-        let set_params = [];
-        if (changes.title !== undefined) {
-            set_query += ' title = ?';
-            set_params.push(changes.title);
-        }
-        if (changes.description !== undefined) {
-            if (set_params.length < 1) {
-                set_query += ' description = ?';
-            } else {
-                set_query += ', description = ?';
-            }
-            set_params.push(changes.description);
-        }
-        if (changes.categoryId !== undefined) {
-            if (set_params.length < 1) {
-                set_query += ' category_id = ?';
-            } else {
-                set_query += ', category_id = ?';
-            }
-            set_params.push(changes.categoryId);
-        }
-        if (changes.closingDate !== undefined) {
-            if (set_params.length < 1) {
-                set_query += ' closing_date = ?';
-            } else {
-                set_query += ', closing_date = ?';
-            }
-            set_params.push(changes.closingDate);
-        }
-        const query = 'UPDATE Petition ' + set_query + ' WHERE petition_id = ?';
-        set_params.push(petition_id);
+        const [query, set_params] = createChangeQuery(changes, petition_id);
         await conn.query(query, set_params);
         conn.release();
     }
 };
 
-exports.deletePetitionById = async function (auth_token, petition_id) {
-    const user_id = await authentication.getUserId(auth_token);
+exports.deletePetitionById = async function (user_id, petition_id) {
     const author_id = await getAuthorId(petition_id);
-    if (user_id !== author_id[0].author_id) {
+    if (author_id.length === 0) {
+        return 'Petition does not exist';
+    } else if (user_id != author_id[0].author_id) {
         return 'cannot delete petitions that are not your own';
     } else {
         const conn = await db.getPool().getConnection();
         const query = 'DELETE FROM Petition WHERE petition_id = ?';
+        const delete_signatures_query = 'DELETE FROM Signature WHERE petition_id = ?';
         await conn.query(query, [petition_id]);
+        await conn.query(delete_signatures_query, [petition_id]);
         conn.release();
     }
 };
@@ -191,3 +126,75 @@ async function getAuthorId(petition_id) {
     return author_id;
 }
 
+
+function createExtraQuery(category_id, author_id) {
+    let extra_query = '';
+    let param_array = [];
+    if (category_id !== undefined) {
+        extra_query += 'AND category_id = ? ';
+        param_array.push(category_id);
+    } else if (author_id !== undefined) {
+        extra_query += 'AND author_id = ? ';
+        param_array.push(author_id);
+    }
+    return [extra_query, category_id];
+}
+
+
+function createOrderByQuery(sort_by) {
+    let order_by_query = 'ORDER BY signatureCount DESC, p.petition_id ASC';  // This is the default ORDER unless otherwise specified in parameters.sortBy
+    if (sort_by !== undefined) {
+        switch (sort_by) {
+            case 'ALPHABETICAL_ASC':
+                order_by_query = 'ORDER BY title ASC';
+                break;
+            case 'ALPHABETICAL_DESC':
+                order_by_query = 'ORDER BY title DESC';
+                break;
+            case 'SIGNATURES_ASC':
+                order_by_query = 'ORDER BY signatureCount ASC, p.petition_id ASC';
+                break;
+            case 'SIGNATURES_DESC':
+                order_by_query = 'ORDER BY signatureCount DESC, p.petition_id ASC';
+                break;
+        }
+    }
+    return order_by_query;
+}
+
+
+function createChangeQuery(changes, petition_id) {
+    let set_query = 'SET';
+    let set_params = [];
+    if (changes.title !== undefined) {
+        set_query += ' title = ?';
+        set_params.push(changes.title);
+    }
+    if (changes.description !== undefined) {
+        if (set_params.length < 1) {
+            set_query += ' description = ?';
+        } else {
+            set_query += ', description = ?';
+        }
+        set_params.push(changes.description);
+    }
+    if (changes.categoryId !== undefined) {
+        if (set_params.length < 1) {
+            set_query += ' category_id = ?';
+        } else {
+            set_query += ', category_id = ?';
+        }
+        set_params.push(changes.categoryId);
+    }
+    if (changes.closingDate !== undefined) {
+        if (set_params.length < 1) {
+            set_query += ' closing_date = ?';
+        } else {
+            set_query += ', closing_date = ?';
+        }
+        set_params.push(changes.closingDate);
+    }
+    const query = 'UPDATE Petition ' + set_query + ' WHERE petition_id = ?';
+    set_params.push(petition_id);
+    return [query, set_params]
+}

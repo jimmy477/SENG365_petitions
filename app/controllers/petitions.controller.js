@@ -1,8 +1,8 @@
 const petition = require('../models/petitions.model');
+const db = require('../../config/db');
 
 exports.listPetitions = async function (req, res) {
-
-    let parameters = {
+    const parameters = {
         "startIndex": req.query.startIndex,
         "count": req.query.count,
         "q": req.query.q,
@@ -10,10 +10,9 @@ exports.listPetitions = async function (req, res) {
         "authorId": req.query.authorId,
         "sortBy": req.query.sortBy
     };
-
     try {
-        let flag = checkGetParameters(parameters);
-        if (flag !== null) {
+        const flag = checkGetParameters(parameters);
+        if (flag !== null) {  // Then parameters are invalid
             res.statusMessage = flag;
             res.status(400)
                 .send();
@@ -36,8 +35,7 @@ exports.newPetition = async function (req, res) {
             res.status(400)
                 .send();
         } else {
-            console.log(req.header('X-Authorization'));
-            const petition_id = await petition.addNewPetition(req.header('X-Authorization'), req.body);
+            const petition_id = await petition.addNewPetition(req.authenticatedUserId, req.body);
             res.status(201)
                 .send({ "petitionId" : petition_id});
         }
@@ -69,13 +67,16 @@ exports.getPetition = async function (req, res) {
 exports.changePetition =async function (req, res) {
     try {
         const flag = await checkPatchParameters(req.body);
-        if (flag !== null) {
+        if (flag !== null) {  // Then parameters are invalid
             res.statusMessage = flag;
             res.status(400)
                 .send();
         } else {
-            const result = await petition.changePetitionById(req.header('X-Authorization'), req.params.id, req.body);
-            if (result === 'cannot change petitions that are not your own') {
+            const result = await petition.changePetitionById(req.authenticatedUserId, req.params.id, req.body);
+            if (result === 'Petition does not exist') {
+                res.status(404)
+                    .send();
+            } else if (result === 'Cannot change petitions that are not your own') {
                 res.statusMessage = result;
                 res.status(403)
                     .send();
@@ -93,10 +94,13 @@ exports.changePetition =async function (req, res) {
 
 exports.deletePetition = async function (req, res) {
     try {
-        const result = await petition.deletePetitionById(req.header('X-Authorization'), req.params.id);
+        const result = await petition.deletePetitionById(req.authenticatedUserId, req.params.id);
         if (result === 'cannot delete petitions that are not your own') {
             res.statusMessage = result;
             res.status(403)
+                .send();
+        } else if (result === 'Petition does not exist') {
+            res.status(404)
                 .send();
         } else {
             res.status(200)
@@ -122,7 +126,7 @@ exports.getCategories = async function (req, res) {
 };
 
 function checkGetParameters(parameters) {
-    let sortby_list = ['ALPHABETICAL_ASC', 'ALPHABETICAL_DESC', 'SIGNATURES_ASC', 'SIGNATURES_DESC'];
+    const sortby_list = ['ALPHABETICAL_ASC', 'ALPHABETICAL_DESC', 'SIGNATURES_ASC', 'SIGNATURES_DESC'];
     if (parameters.startIndex !== undefined && isNaN(parseFloat(parameters.startIndex))) {
         return 'startIndex given is not a number'
     }
@@ -142,9 +146,9 @@ function checkGetParameters(parameters) {
 }
 
 async function checkPostParameters(parameters) {
-    let current_date = new Date();
-    let now = current_date.toISOString().replace('Z', '').replace('T', ' ');
-    const exists = await petition.checkCategoryId(parameters.categoryId);
+    const current_date = new Date();
+    const now = current_date.toISOString().replace('Z', '').replace('T', ' ');
+    const exists = await checkCategoryId(parameters.categoryId);
     if (parameters.title === undefined) {
         return 'no title given';
     }
@@ -167,9 +171,9 @@ async function checkPostParameters(parameters) {
 }
 
 async function checkPatchParameters(parameters) {
-    let current_date = new Date();
-    let now = current_date.toISOString().replace('Z', '').replace('T', ' ');
-    const exists = await petition.checkCategoryId(parameters.categoryId);
+    const current_date = new Date();
+    const now = current_date.toISOString().replace('Z', '').replace('T', ' ');
+    const exists = await checkCategoryId(parameters.categoryId);
     if (parameters.closingDate !== undefined && parameters.closingDate < now) {
         return 'closingDate is not in the future';
     }
@@ -178,3 +182,12 @@ async function checkPatchParameters(parameters) {
     }
     return null;
 }
+
+async function checkCategoryId(categoryId) {
+    /*Checks the given categoryId exists within the db*/
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT category_id FROM Category WHERE category_id = ?';
+    const [result] = await conn.query(query, [categoryId]);
+    conn.release();
+    return result[0] !== undefined;
+};
