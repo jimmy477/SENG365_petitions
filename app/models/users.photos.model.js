@@ -7,10 +7,10 @@ exports.getPhotoById = async function (id) {
     const query = 'SELECT photo_filename FROM User WHERE user_id = ?';
     const [photo] = await conn.query(query, [id]);
     conn.release();
-    try {
+    if (photo.length > 0) {
         return photo[0].photo_filename;
-    } catch (err) {
-        return 'Could not find photo';
+    } else {
+        return null
     }
 };
 
@@ -31,18 +31,19 @@ exports.setPhotoForId = async function (user_id, content_type, photo_buffer) {
 
 
 exports.deletePhotoById = async function (user_id) {
+    /* Deletes a users photo adn removes from the photo directory, returns false if the user does not
+       have a photo to delete */
     const conn = await db.getPool().getConnection();
-    const filename_query = 'SELECT photo_filename FROM User WHERE user_id = ?';
+    const filename_query = 'SELECT photo_filename FROM User WHERE user_id = ?'; // Checking if the user already has a photo to delete
     const query = 'UPDATE User SET photo_filename = null WHERE user_id = ?';
     const [filename] = await conn.query(filename_query, [user_id]);
-    const [result] = await conn.query(query, [user_id]);
+    await conn.query(query, [user_id]);
     conn.release();
-    console.log(result);
     if (filename[0].photo_filename === null) {
-        return 'not found';
+        return false;
     } else {
         await fs.unlink(photos_directory + filename[0].photo_filename);
-        return 'found'
+        return true;
     }
 };
 
