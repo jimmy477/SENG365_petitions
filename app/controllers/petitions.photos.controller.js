@@ -62,7 +62,7 @@ exports.setPetitionPhoto = async function (req, res) {
 };
 
 
-async function getCurrentPhotoName (petition_id) {
+async function getCurrentPhotoName(petition_id) {
     const conn = await db.getPool().getConnection();
     const query = 'SELECT photo_filename FROM Petition WHERE petition_id = ?';
     const [result] = await conn.query(query, [petition_id]);

@@ -37,7 +37,7 @@ exports.newPetition = async function (req, res) {
         } else {
             const petition_id = await petition.addNewPetition(req.authenticatedUserId, req.body);
             res.status(201)
-                .send({ "petitionId" : petition_id});
+                .send({"petitionId": petition_id});
         }
     } catch (err) {
         res.statusMessage = err;
@@ -64,7 +64,7 @@ exports.getPetition = async function (req, res) {
     }
 };
 
-exports.changePetition =async function (req, res) {
+exports.changePetition = async function (req, res) {
     try {
         const flag = await checkPatchParameters(req.body);
         if (flag !== null) {  // Then parameters are invalid
@@ -190,4 +190,4 @@ async function checkCategoryId(categoryId) {
     const [result] = await conn.query(query, [categoryId]);
     conn.release();
     return result[0] !== undefined;
-};
+}

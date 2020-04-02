@@ -6,7 +6,7 @@ exports.registerUser = async function (user_data) {
     // Registers a new user and stores their data in the database
     const conn = await db.getPool().getConnection();
     const query = 'INSERT INTO User (name, email, password, city, country) ' +
-                  'VALUES (?, ?, ?, ?, ?)';
+        'VALUES (?, ?, ?, ?, ?)';
     const hashed_password = await passwords.hash(user_data.password, 10);
     const [result] = await conn.query(query, [user_data.name, user_data.email, hashed_password, user_data.city, user_data.country]);
     conn.release();

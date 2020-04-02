@@ -8,18 +8,18 @@ exports.getAll = async function (parameters) {
     const [extra_query, param_array] = createExtraQuery(parameters.categoryId, parameters.authorId);
     const order_by_query = createOrderByQuery(parameters.sortBy);
     const query = 'SELECT p.petition_id as petitionId, p.title, c.name as category, ' +
-                  'u.name as authorName, count(*) as signatureCount ' +
-                  'FROM Petition p ' +
-                  'LEFT JOIN User u ' +
-                      'ON p.author_id = u.user_id ' +
-                  'LEFT JOIN Category c ' +
-                      'USING (category_id) ' +
-                  'LEFT JOIN Signature s ' +
-                      'USING (petition_id) ' +
-                  'WHERE 1=1 ' +
-                   extra_query +
-                  'GROUP BY p.petition_id ' +
-                   order_by_query;
+        'u.name as authorName, count(*) as signatureCount ' +
+        'FROM Petition p ' +
+        'LEFT JOIN User u ' +
+        'ON p.author_id = u.user_id ' +
+        'LEFT JOIN Category c ' +
+        'USING (category_id) ' +
+        'LEFT JOIN Signature s ' +
+        'USING (petition_id) ' +
+        'WHERE 1=1 ' +
+        extra_query +
+        'GROUP BY p.petition_id ' +
+        order_by_query;
     let [rows] = await conn.query(query, param_array);
     conn.release();
     if (parameters.q !== undefined) {
@@ -44,7 +44,7 @@ exports.addNewPetition = async function (user_id, petition_data) {
     /* Adds a new petition to the database */
     const conn = await db.getPool().getConnection();
     const query = 'INSERT INTO Petition (title, description, author_id, category_id, created_date, closing_date) ' +
-                  'VALUES (?, ?, ?, ?, ?, ?)';
+        'VALUES (?, ?, ?, ?, ?, ?)';
     const now = new Date();
     const [result] = await conn.query(query, [petition_data.title, petition_data.description, user_id, petition_data.categoryId, now, petition_data.closingDate]);
     conn.release();
@@ -56,25 +56,25 @@ exports.getPetitionById = async function (id) {
     const conn = await db.getPool().getConnection();
 
     const query = 'SELECT p.petition_id as petitionId,' +
-                         'p.title, ' +
-                         'c.name as category, ' +
-                         'u.name as authorName, ' +
-                         'count(*) as signatureCount, ' +
-                         'p.description, ' +
-                         'p.author_id as authorId, ' +
-                         'u.city as authorCity, ' +
-                         'u.country as authorCountry, ' +
-                         'p.created_date as createdDate, ' +
-                         'p.closing_date as closingDate ' +
-                  'FROM Petition p ' +
-                         'LEFT JOIN User u ' +
-                             'ON p.author_id = u.user_id ' +
-                         'LEFT JOIN Category c ' +
-                             'USING (category_id) ' +
-                         'LEFT JOIN Signature s ' +
-                             'USING (petition_id) ' +
-                  'WHERE petition_id = ?';
-    const [petition_info] =  await conn.query(query, [id]);
+        'p.title, ' +
+        'c.name as category, ' +
+        'u.name as authorName, ' +
+        'count(*) as signatureCount, ' +
+        'p.description, ' +
+        'p.author_id as authorId, ' +
+        'u.city as authorCity, ' +
+        'u.country as authorCountry, ' +
+        'p.created_date as createdDate, ' +
+        'p.closing_date as closingDate ' +
+        'FROM Petition p ' +
+        'LEFT JOIN User u ' +
+        'ON p.author_id = u.user_id ' +
+        'LEFT JOIN Category c ' +
+        'USING (category_id) ' +
+        'LEFT JOIN Signature s ' +
+        'USING (petition_id) ' +
+        'WHERE petition_id = ?';
+    const [petition_info] = await conn.query(query, [id]);
     conn.release();
     return petition_info[0]
 };
@@ -132,7 +132,8 @@ function createExtraQuery(category_id, author_id) {
     if (category_id !== undefined) {
         extra_query += 'AND category_id = ? ';
         param_array.push(category_id);
-    } if (author_id !== undefined) {
+    }
+    if (author_id !== undefined) {
         extra_query += 'AND author_id = ? ';
         param_array.push(author_id);
     }

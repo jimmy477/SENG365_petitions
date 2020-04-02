@@ -78,7 +78,7 @@ exports.deleteProfilePhoto = async function (req, res) {
                     .send();
             }
         }
-    } catch (err ) {
+    } catch (err) {
         res.statusMessage = err;
         res.status(500)
             .send();

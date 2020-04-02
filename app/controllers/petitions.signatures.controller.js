@@ -5,8 +5,8 @@ const authentication = require('../middleware/authenticate.middleware');
 exports.getSignatures = async function (req, res) {
     try {
         const all_signatures = await signatures.getSignaturesById(req.params.id);
-            res.status(200)
-                .send(all_signatures);
+        res.status(200)
+            .send(all_signatures);
     } catch (err) {
         res.statusMessage = err;
         res.status(500)
@@ -15,7 +15,7 @@ exports.getSignatures = async function (req, res) {
 };
 
 
-exports.addSignature =async function (req, res) {
+exports.addSignature = async function (req, res) {
     try {
         const user_id = req.authenticatedUserId;
         const result = await signatures.addSignatureWithId(req.params.id, user_id);
