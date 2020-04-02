@@ -17,7 +17,7 @@ exports.getSignatures = async function (req, res) {
 
 exports.addSignature =async function (req, res) {
     try {
-        const user_id = await authentication.getUserId(req.header('X-Authorization'));
+        const user_id = req.authenticatedUserId;
         const result = await signatures.addSignatureWithId(req.params.id, user_id);
         if (result === 'User has already signed this petition') {
             res.statusMessage = result;
@@ -41,7 +41,7 @@ exports.addSignature =async function (req, res) {
 
 exports.deleteSignature = async function (req, res) {
     try {
-        const user_id = await authentication.getUserId(req.header('X-Authorization'));
+        const user_id = req.authenticatedUserId;
         const result = await signatures.deleteSignatureWithId(req.params.id, user_id);
         if (typeof result === "string") {
             res.statusMessage = result;

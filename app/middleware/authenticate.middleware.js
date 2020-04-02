@@ -20,7 +20,6 @@ exports.checkToken = async function (req, res, next) {
     }
 };
 
-// TODO check if these functions are used anywhere after refactoring
 exports.checkUserIdExists = async function (req, res, next) {
     try {
         const conn = await db.getPool().getConnection();
@@ -58,12 +57,6 @@ exports.checkPetitionIdExists = async function (req, res, next) {
         res.status(500)
             .send();
     }
-};
-
-exports.getUserId = async function (token) {
-    /* Only to be used after checkToken */
-    const user_id = await findUserIdByToken(token);
-    return user_id[0].user_id
 };
 
 exports.getUserIdFromPetitionId = async function (petition_id) {
