@@ -4,7 +4,7 @@ const authentication = require('../middleware/authenticate.middleware');
 
 exports.getAll = async function (parameters) {
     /* Gets all the petitions which meet the criteria of the parameters */
-    const conn = await db.getPool().getConnection();
+    //const conn = await db.getPool().getConnection();
     const [extra_query, param_array] = createExtraQuery(parameters.categoryId, parameters.authorId);
     const order_by_query = createOrderByQuery(parameters.sortBy);
     const query = 'SELECT p.petition_id as petitionId, p.title, c.name as category, ' +
@@ -20,8 +20,8 @@ exports.getAll = async function (parameters) {
         extra_query +
         'GROUP BY p.petition_id ' +
         order_by_query;
-    let [rows] = await conn.query(query, param_array);
-    conn.release();
+    let [rows] = await db.getPool().query(query, param_array);
+    //conn.release();
     if (parameters.q !== undefined) {
         for (let i = 0; i < rows.length; i++) {
             const title = rows[i].title.toUpperCase();
@@ -42,18 +42,18 @@ exports.getAll = async function (parameters) {
 
 exports.addNewPetition = async function (user_id, petition_data) {
     /* Adds a new petition to the database */
-    const conn = await db.getPool().getConnection();
+    //const conn = await db.getPool().getConnection();
     const query = 'INSERT INTO Petition (title, description, author_id, category_id, created_date, closing_date) ' +
         'VALUES (?, ?, ?, ?, ?, ?)';
     const now = new Date();
-    const [result] = await conn.query(query, [petition_data.title, petition_data.description, user_id, petition_data.categoryId, now, petition_data.closingDate]);
-    conn.release();
+    const [result] = await db.getPool().query(query, [petition_data.title, petition_data.description, user_id, petition_data.categoryId, now, petition_data.closingDate]);
+    //conn.release();
     return result.insertId;
 };
 
 
 exports.getPetitionById = async function (id) {
-    const conn = await db.getPool().getConnection();
+    //const conn = await db.getPool().getConnection();
 
     const query = 'SELECT p.petition_id as petitionId,' +
         'p.title, ' +
@@ -74,8 +74,8 @@ exports.getPetitionById = async function (id) {
         'LEFT JOIN Signature s ' +
         'USING (petition_id) ' +
         'WHERE petition_id = ?';
-    const [petition_info] = await conn.query(query, [id]);
-    conn.release();
+    const [petition_info] = await db.getPool().query(query, [id]);
+    //conn.release();
     return petition_info[0]
 };
 
@@ -87,10 +87,10 @@ exports.changePetitionById = async function (user_id, petition_id, changes) {
     } else if (user_id != author_id[0].author_id) {
         return 'Cannot change petitions that are not your own';
     } else {
-        const conn = await db.getPool().getConnection();
+        //const conn = await db.getPool().getConnection();
         const [query, set_params] = createChangeQuery(changes, petition_id);
-        await conn.query(query, set_params);
-        conn.release();
+        await db.getPool().query(query, set_params);
+        //conn.release();
     }
 };
 
@@ -101,27 +101,27 @@ exports.deletePetitionById = async function (user_id, petition_id) {
     } else if (user_id != author_id[0].author_id) {
         return 'cannot delete petitions that are not your own';
     } else {
-        const conn = await db.getPool().getConnection();
+        //const conn = await db.getPool().getConnection();
         const query = 'DELETE FROM Petition WHERE petition_id = ?';
         const delete_signatures_query = 'DELETE FROM Signature WHERE petition_id = ?';
-        await conn.query(query, [petition_id]);
-        await conn.query(delete_signatures_query, [petition_id]);
-        conn.release();
+        await db.getPool().query(query, [petition_id]);
+        await db.getPool().query(delete_signatures_query, [petition_id]);
+        //conn.release();
     }
 };
 
 exports.getAllCategories = async function () {
-    const conn = await db.getPool().getConnection();
+    //const conn = await db.getPool().getConnection();
     const query = 'SELECT category_id as categoryId, name FROM Category';
-    const [categories] = await conn.query(query);
-    conn.release();
+    const [categories] = await db.getPool().query(query);
+    //conn.release();
     return categories;
 };
 
 async function getAuthorId(petition_id) {
-    const conn = await db.getPool().getConnection();
+    //const conn = await db.getPool().getConnection();
     const query = 'SELECT author_id FROM Petition WHERE petition_id = ?';
-    const [author_id] = await conn.query(query, [petition_id]);
+    const [author_id] = await db.getPool().query(query, [petition_id]);
     return author_id;
 }
 
